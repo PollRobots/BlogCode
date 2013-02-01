@@ -82,8 +82,9 @@ let parseExpression (grammar:Map<string,GrammarRule<'a>>) start (input:string) =
     | TerminalWildcard -> match currentCharacter input offset with 
                           | Some c -> (TerminalSymbol c, offset + c.Length)
                           | None -> (Unmatched, offset)
-    | TerminalUnicode x ->
-        if offset < input.Length && System.Char.GetUnicodeCategory(input, offset) = x then (TerminalSymbol input.[offset..offset], offset + 1) else (Unmatched, offset)
+    | TerminalUnicode x -> match currentCharacter input offset with
+                           | Some c -> if Char.GetUnicodeCategory(c, 0) = x then (TerminalSymbol c, offset + c.Length) else (Unmatched, offset)
+                           | None -> (Unmatched, offset)
     | NonTerminal x -> 
         let rule = grammar.[x]
         match parse offset rule.Prod with 

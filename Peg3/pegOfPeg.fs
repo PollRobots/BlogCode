@@ -109,7 +109,7 @@ let pegGrammar =
                                                    Sequence [Terminal "("; Optional (NonTerminal "space"); NonTerminal "expr"; Optional (NonTerminal "space"); Terminal ")"]],
                                                    parseAtom)
 
-    // unary <- ([!&] unary) / (atom [*+?]) / atom
+    // unary <- ([!&] unary) / (atom [*+?])?
     let parseUnary _ = function
     | Production [TerminalSymbol "!"; Parsed x] -> Parsed <| Not x
     | Production [TerminalSymbol "&"; Parsed x] -> Parsed <| And x
@@ -118,8 +118,8 @@ let pegGrammar =
     | Production [Parsed x; TerminalSymbol "?"] -> Parsed <| Optional x
     | Production [Parsed _ as x; EmptyMatch] -> x
     | x -> unexpected x
-    let unaryRule = GrammarRule<Expression>(Choice [Sequence [TerminalOneOf "!&"; NonTerminal "unary"]; Sequence [NonTerminal "atom"; Optional(TerminalOneOf "*+?")]],
-                                            parseUnary)
+    let unaryRule = GrammarRule<Expression>(Choice [Sequence [TerminalOneOf "!&"; NonTerminal "unary"]; 
+                                                    Sequence [NonTerminal "atom"; Optional(TerminalOneOf "*+?")]], parseUnary)
 
     // sequence <- unary (space unary)*
     let parseSequence _ = function
@@ -152,13 +152,13 @@ let pegGrammar =
         TerminalSymbol unescaped
     let codeblockRule = GrammarRule<Expression>(Sequence [Terminal "{"; ZeroOrMore (NonTerminal "codechar"); Terminal "}"], parseCodeblock)
 
-    // rule <- name space? "<-" space? expr space? codeblock? <epsilon>
+    // rule <- name space? "<-" space? expr space? codeblock? space? <epsilon>
     let parseRule _ = function
-    | Production [TerminalSymbol x; _; TerminalSymbol "<-"; _; Parsed y; _; EmptyMatch; EmptyMatch] -> Parsed <| Rule (x, y, "")
-    | Production [TerminalSymbol x; _; TerminalSymbol "<-"; _; Parsed y; _; TerminalSymbol z; EmptyMatch] -> Parsed <| Rule (x, y, z)
+    | Production [TerminalSymbol x; _; TerminalSymbol "<-"; _; Parsed y; _; EmptyMatch; _; EmptyMatch] -> Parsed <| Rule (x, y, "")
+    | Production [TerminalSymbol x; _; TerminalSymbol "<-"; _; Parsed y; _; TerminalSymbol z; _; EmptyMatch] -> Parsed <| Rule (x, y, z)
     | x -> unexpected x
     let ruleRule = GrammarRule<Expression>(Sequence [NonTerminal "name"; Optional (NonTerminal "space"); Terminal "<-"; Optional (NonTerminal "space"); NonTerminal "expr"; Optional (NonTerminal "space");
-                                                     Optional (NonTerminal "codeblock"); Epsilon],
+                                                     Optional (NonTerminal "codeblock"); Optional (NonTerminal "space"); Epsilon],
                                            parseRule)
 
     Map.ofList [("hexdigit", hexDigitRule); ("escapedCharacter", escapedCharacterRule); ("safeCharacter", safeCharacterRule);
