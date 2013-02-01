@@ -1,0 +1,44 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Two", "Two", "{7B71CDEA-31EB-43BA-A307-BC6E9002DCD5}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Peg", "Peg2\Peg.fsproj", "{93D072D7-6108-4FB4-8366-453C362715D5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Three", "Three", "{118415CA-E002-4BDF-A809-2316177507F5}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Peg", "Peg3\Peg.fsproj", "{A42E1E7C-379F-4E2A-BB90-43E3A35D8EBE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CodeGenTest", "CodeGenTest", "{7B597B94-75B0-4ADE-8C3E-1BF7431E726B}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CodeGenTest", "Peg3\CodeGenTest\CodeGenTest.fsproj", "{64241E2A-7201-43CD-A3BC-7610A667760D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93D072D7-6108-4FB4-8366-453C362715D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93D072D7-6108-4FB4-8366-453C362715D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93D072D7-6108-4FB4-8366-453C362715D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93D072D7-6108-4FB4-8366-453C362715D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A42E1E7C-379F-4E2A-BB90-43E3A35D8EBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A42E1E7C-379F-4E2A-BB90-43E3A35D8EBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A42E1E7C-379F-4E2A-BB90-43E3A35D8EBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A42E1E7C-379F-4E2A-BB90-43E3A35D8EBE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64241E2A-7201-43CD-A3BC-7610A667760D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64241E2A-7201-43CD-A3BC-7610A667760D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64241E2A-7201-43CD-A3BC-7610A667760D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64241E2A-7201-43CD-A3BC-7610A667760D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{93D072D7-6108-4FB4-8366-453C362715D5} = {7B71CDEA-31EB-43BA-A307-BC6E9002DCD5}
+		{A42E1E7C-379F-4E2A-BB90-43E3A35D8EBE} = {118415CA-E002-4BDF-A809-2316177507F5}
+		{7B597B94-75B0-4ADE-8C3E-1BF7431E726B} = {118415CA-E002-4BDF-A809-2316177507F5}
+		{64241E2A-7201-43CD-A3BC-7610A667760D} = {7B597B94-75B0-4ADE-8C3E-1BF7431E726B}
+	EndGlobalSection
+EndGlobal
