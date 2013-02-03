@@ -260,7 +260,7 @@ let parse line =
 
     let currentCharacter (s:string) i =
         if i >= s.Length then None
-        else if Char.IsSurrogatePair(s, i) then Some s.[i..i+1] else Some s.[i..i]
+        else if System.Char.IsSurrogatePair(s, i) then Some s.[i..i+1] else Some s.[i..i]
 
     let matchTerminalOneOf (terminal:string) (input:string) offset = 
         match currentCharacter input offset with
