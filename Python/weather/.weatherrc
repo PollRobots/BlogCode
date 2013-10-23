@@ -1,0 +1,13 @@
+# Configuration file for weather.py
+#
+
+location:San Francisco, CA
+
+# units are 'metric' or 'imperial'
+units:imperial
+
+# if symbols is 'true' then use unicode characters for various weather conditions
+symbols:true
+
+# If you have an openweathermap.org AppId set it here
+#app-id:
