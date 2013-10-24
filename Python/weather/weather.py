@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import re
 
 from datetime import datetime
 from os.path import expanduser
@@ -9,6 +10,53 @@ from urllib import urlencode
 from urllib2 import urlopen
 
 CONFIG_FILES = ['~/.weatherrc', '~/_weatherrc']
+
+LAYERS = {
+        'FOREGROUND':3,
+        'BACKGROUND':4,
+        }
+
+COLORS = {
+        'BLACK':0,
+        'RED':1,
+        'GREEN':2,
+        'YELLOW':3,
+        'BLUE':4,
+        'MAGENTA':5,
+        'CYAN':6,
+        'WHITE':7,
+    }
+
+EFFECTS = {
+        'RESET':0,
+        'BOLD':1,
+        'UNDERLINE':4,
+        'BLINK':5,
+        'REVERSE':7,
+        'HIDE':8,
+        'NOBOLD':22,
+        'NOUNDERLINE':24,
+        'NOBLINK':25,
+        'NOREVERSE':27,
+        'SHOW':28,
+        }
+
+def _ansi_code(*args):
+    layer = 3 # by default assume a foreground color is being set.
+    actions = []
+    for a in args:
+        key = a.upper()
+        if key in LAYERS:
+            layer = LAYERS[key]
+        elif key in COLORS:
+            actions.append(layer * 10 + COLORS[key])
+        elif key in EFFECTS:
+            actions.append(EFFECTS[key])
+
+    return u'\033[%sm' % (';'.join(str(a) for a in actions),)
+
+def _strip_ansi(string):
+    return ''.join(re.split('\033\\[[^m]*m', string))
 
 _config = {}
 
@@ -38,18 +86,19 @@ def _get_config(name, default = None):
     return _config.get(name, default)
 
 _print_symbols = dict(
-        background=_get_config('background', u'\033[44m'),
-        text=_get_config('text', u'\033[36;1m'),
-        data=_get_config('data', u'\033[33;1m'),
-        delimiter=_get_config('delimiter', u'\033[35m=>'),
-        dashes=_get_config('dashes', u'\033[34m-'),
+        background=_get_config('background', _ansi_code('background', 'blue')),
+        text=_get_config('text', _ansi_code('cyan', 'bold')),
+        data=_get_config('data', _ansi_code('yellow', 'bold')),
+        delimiter=_get_config('delimiter', _ansi_code('magenta') + u'=>'),
+        dashes=_get_config('dashes', _ansi_code('blue') + u'-'),
+        reset = _ansi_code('reset'),
         )
 
-_sun = _get_config('sun', u'\033[33;1m\u2600')
-_moon = _get_config('moon', u'\033[36m\u263d')
-_clouds = _get_config('clouds', u'\033[37;1m\u2601')
+_sun = _get_config('sun', _ansi_code('yellow', 'bold') + u'\u2600')
+_moon = _get_config('moon', _ansi_code('cyan') + u'\u263d')
+_clouds = _get_config('clouds', _ansi_code('white', 'bold') + u'\u2601')
 _rain = _get_config('rain', u'\u2614')
-_snow = _get_config('snow', u'\u2744')
+_snow = _get_config('snow', _ansi_code('white', 'bold') + u'\u2744')
 
 class Weather(object):
     'Encapsulates simple access to the openweathermap.org API'
@@ -61,10 +110,12 @@ class Weather(object):
 %(background)s%(text)s Current weather in %(city)s 
 %(delimiter)s%(data)s %(temperature)s%(scale)s %(icon)s 
 %(dashes)s%(text)s Humidity %(delimiter)s%(data)s %(humidity)s%% 
-%(dashes)s%(text)s Pressure %(delimiter)s%(data)s %(pressure)s hPa \033[0m
+%(dashes)s%(text)s Pressure %(delimiter)s%(data)s %(pressure)s hPa %(reset)s
 """.replace('\n','')
 
     def __init__(self, weather, units = None):
+        if not weather:
+            return
         main = weather.get('main')
         sys = weather.get('sys')
 
@@ -95,7 +146,7 @@ class Weather(object):
 
         self.icon = icon
 
-    def display(self, symbols = None):
+    def display(self, symbols = None, uses_ansi = True):
         """Displays the instance as a string using ANSI color codes.
 
         If symbols is supplied and true, or if the default is true, then unicode symbols are used
@@ -113,7 +164,11 @@ class Weather(object):
             scale=self.scale,
             ))
 
-        return Weather.DISPLAY_FORMAT % args
+        output = Weather.DISPLAY_FORMAT % args
+        if not uses_ansi:
+            output = _strip_ansi(output)
+
+        return output
 
     @classmethod
     def get_weather(cls, location = None, units = None, app_id = None):
