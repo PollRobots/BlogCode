@@ -94,11 +94,52 @@ _print_symbols = dict(
         reset = _ansi_code('reset'),
         )
 
+_title_row = _get_config('title-row', _ansi_code('background', 'black', 'foreground', 'blue', 'bold'))
+_even_row = _get_config('even-row', _ansi_code('background', 'white', 'foreground', 'black'))
+_odd_row = _get_config('even-row', _ansi_code('background', 'cyan', 'foreground', 'black'))
+
 _sun = _get_config('sun', _ansi_code('yellow', 'bold') + u'\u2600')
 _moon = _get_config('moon', _ansi_code('cyan') + u'\u263d')
 _clouds = _get_config('clouds', _ansi_code('white', 'bold') + u'\u2601')
 _rain = _get_config('rain', u'\u2614')
 _snow = _get_config('snow', _ansi_code('white', 'bold') + u'\u2744')
+
+def _print_table(cols, data):
+    """Print tabulated data.
+
+    cols - This is a list of 3-tuples, of (title, name, suffix)
+    data - This is a list of dicts
+    """
+    #compute widths
+
+    # initialize to titles
+    widths = [len(t) for (t, _, _) in cols]
+
+    for row in data:
+        for i, (_, c, s) in enumerate(cols):
+            w = len(_strip_ansi(unicode(row.get(c, '')))) + len(s)
+            if w > widths[i]:
+                widths[i] = w
+
+    # print title row
+    line = _title_row
+    for i, (t, _, _) in enumerate(cols):
+        line += t.title() + (' ' * (widths[i] - len(t)))
+    line += _ansi_code('reset')
+    print line
+
+    # print table rows
+    for n, row in enumerate(data):
+        row_code = _odd_row if n % 2 else _even_row
+        line = row_code
+        for i, (_, c, s) in enumerate(cols):
+            item = unicode(row.get(c, '')) + unicode(s)
+            line += item + (' ' * (widths[i] - len(_strip_ansi(item))))
+            if '\033' in item:
+                line += _ansi_code('reset') + row_code
+        line += _ansi_code('reset')
+        print line
+
 
 class Weather(object):
     'Encapsulates simple access to the openweathermap.org API'
@@ -106,6 +147,9 @@ class Weather(object):
     BASE_URI = 'http://api.openweathermap.org/data/2.5'
     WEATHER = 'weather'
     FIND_CITY = 'find'
+    FORECAST = 'forecast'
+    DAILY = 'forecast/daily'
+
     DISPLAY_FORMAT = u"""
 %(background)s%(text)s Current weather in %(city)s 
 %(delimiter)s%(data)s %(temperature)s%(scale)s %(icon)s 
@@ -113,23 +157,42 @@ class Weather(object):
 %(dashes)s%(text)s Pressure %(delimiter)s%(data)s %(pressure)s hPa %(reset)s
 """.replace('\n','')
 
-    def __init__(self, weather, units = None):
+    def __init__(self, weather, units = None, city = None):
         if not weather:
             return
         main = weather.get('main')
-        sys = weather.get('sys')
+        if main is None:
+            main = weather
 
-        self.city = weather.get('name')
+        self.scale = u'\u02daC' if (units or _get_config('units', 'metric')) == 'metric' else u'\u02daF'
+
+        self.city = city or weather.get('name')
         self.temperature = main.get('temp')
-        self.humidity = main.get('humidity')
-        self.pressure = main.get('pressure')
+        if isinstance(self.temperature, dict):
+            self.min = int(round(self.temperature.get('min')))
+            self.max= int(round(self.temperature.get('max')))
+            self.temperature = '%s%s %s' % (int(round(self.temperature.get('max'))), 
+                                            self.scale,
+                                            int(round(self.temperature.get('min'))))
+        else:
+            self.temperature = int(round(self.temperature))
+
+        self.humidity = int(round(main.get('humidity')))
+        self.pressure = int(round(main.get('pressure')))
 
         self.sky = weather.get('weather')[0].get('main')
-        self.sunrise = datetime.utcfromtimestamp(sys.get('sunrise'))
-        self.sunset = datetime.utcfromtimestamp(sys.get('sunset'))
-        now = datetime.utcfromtimestamp(weather.get('dt'))
 
-        self.is_night = now >= self.sunset or now <= self.sunrise
+        sys = weather.get('sys')
+        dt = weather.get('dt')
+        self.time = datetime.utcfromtimestamp(dt)
+        self.local_time = datetime.fromtimestamp(dt)
+        if sys and sys.get('sunrise'):
+            self.sunrise = datetime.utcfromtimestamp(sys.get('sunrise'))
+            self.sunset = datetime.utcfromtimestamp(sys.get('sunset'))
+
+            self.is_night = self.time >= self.sunset or self.time <= self.sunrise
+        else:
+            self.is_night = False
 
         self.scale = u'\u02daC' if (units or _get_config('units', 'metric')) == 'metric' else u'\u02daF'
 
@@ -146,7 +209,7 @@ class Weather(object):
 
         self.icon = icon
 
-    def display(self, symbols = None, uses_ansi = True):
+    def display(self, symbols=None, uses_ansi=True, show_time=False):
         """Displays the instance as a string using ANSI color codes.
 
         If symbols is supplied and true, or if the default is true, then unicode symbols are used
@@ -157,11 +220,12 @@ class Weather(object):
         args = _print_symbols.copy()
         args.update(dict(
             city=self.city,
-            temperature=int(round(self.temperature)),
+            temperature=self.temperature,
             humidity=int(round(self.humidity)),
             pressure=int(round(self.pressure)),
             icon=self.icon if symbols else self.sky,
             scale=self.scale,
+            time=self.local_time,
             ))
 
         output = Weather.DISPLAY_FORMAT % args
@@ -179,13 +243,32 @@ class Weather(object):
 
         This returns a Weather object on success or an error string on failure"""
 
-        response = cls._make_request(cls.WEATHER, app_id,
-                q=location or _get_config('location'),
-                units=units or _get_config('units'))
+        city = location or _get_config('location')
+        units = units or _get_config('units')
+        response = cls._make_request(cls.WEATHER, app_id, q=city, units=units)
 
         if not response.get('main'):
             return response.get('message', 'Unknown error')
-        return Weather(response, units)
+
+        return Weather(response, units, city)
+
+    @classmethod
+    def get_forecast(cls, location=None, units=None, daily=False, app_id=None):
+        """Gets a forecast for the specified location.
+
+        This returns a list of Weather objects on success; or an error string otherwise"""
+
+        city = location or _get_config('location')
+        units = units or _get_config('units')
+        response = cls._make_request(cls.DAILY if daily else cls.FORECAST, app_id, q=city, units=units)
+
+        forecasts = response.get('list')
+        if not forecasts:
+            return response.get('message', 'Unknown error')
+
+        city = response.get('city', {}).get('name', city)
+
+        return map(lambda x: Weather(x, units, city), forecasts)
 
     @classmethod
     def find_city(cls, location, app_id = None):
@@ -227,14 +310,16 @@ def _make_parser():
             help='The units to use when displaying the temperature. Defaults to: %s' % _get_config('units'))
     parser.add_argument('-d', '--display', nargs='?', choices=['symbols', 'text'], default=dsym,
             help='Display weather condition using a symbol or text. Defaults to: %s' % dsym)
-    parser.add_argument('-f', '--find', action='count', help='Lookup city name')
+    parser.add_argument('-f', '--forecast', action='count', default=0, help='Fetch a weather forecast')
+    parser.add_argument('-l', '--lookup', action='count', default=0, help='Lookup city name')
+    parser.add_argument('-df', '--daily', action='count', default=0, help='Fetch a daily weather forecast')
     return parser
 
 if __name__ == '__main__':
     p = _make_parser()
     a = p.parse_args()
 
-    if a.find > 0:
+    if a.lookup > 0:
         cities = Weather.find_city(a.location)
         if not cities:
             print "No matching cities were found"
@@ -244,7 +329,30 @@ if __name__ == '__main__':
     else:
         w = Weather.get_weather(a.location, a.units)
         if hasattr(w, 'display'):
-            print w.display(a.display == 'symbols')
+            use_symbols = a.display == 'symbols'
+            print w.display(use_symbols)
+            if a.forecast + a.daily > 0:
+                fs = Weather.get_forecast(a.location, a.units, daily=a.daily > 0)
+                if isinstance(fs, list):
+                    scale = fs[0].scale
+                    space = (' ', ' ','')
+                    if a.daily > 0:
+                        cols = [('max', 'max', scale), space,
+                                ('min', 'min', scale), space,
+                                ('', 'icon', ' ') if use_symbols else ('', 'sky', ''), space,
+                                ('humidity', 'humidity', '%'), space,
+                                ('pressure', 'pressure', ' hPa'), space]
+                    else:
+                        cols = [(' ', 'time', ''), space,
+                                ('temp', 'temperature', scale), space,
+                                ('', 'icon', ' ') if use_symbols else ('', 'sky', ''), space,
+                                ('humidity', 'humidity', '%'), space,
+                                ('pressure', 'pressure', ' hPa'), space,]
+
+
+                    _print_table(cols, map(lambda x: x.__dict__, fs))
+                else:
+                    print f
         else:
             print w
 
