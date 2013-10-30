@@ -43,26 +43,55 @@
 </head>
 <body>
     <h1>Glyphs by Albrecht Dürer</h1>
-    <p>The following letter forms were constructed following the instructions from <a
-        href="http://www.gutenberg.org/files/37103/37103-h/37103-h.htm">Of the just shaping of
-        letters</a> by Albrecht Dürer
+    <p>
+        The following letter forms were constructed following the instructions from
+        <a href="http://www.gutenberg.org/files/37103/37103-h/37103-h.htm">
+            <strong>Of the just shaping of letters</strong></a>
+        by Albrecht Dürer
+    </p>
     <div>
+        <table style='float:right;'>
+            <thead>
+                <tr>
+                    <th colspan="3">Proportions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Width of Broad stems:</td>
+                    <td><input type="range" min="50" max="200" value="111" id="broadProp" /></td>
+                    <td>
+                        <span id="broadPropValue">111</span>
+                        <span title="i.e. thousandth of an em">milli-em</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Width of Narrow stems:</td>
+                    <td><input type="range" min="1" max="100" value="33" id="narrowProp" /></td>
+                    <td><span id="narrowPropValue">33</span>% of broad stem width</td>
+                </tr>
+                <tr>
+                    <td>Width of Serifs:</td>
+                    <td><input type="range" min='0' max='200' value="111" id="serifProp" /></td>
+                    <td>
+                        <span id="serifPropValue">111</span>
+                        <span title="i.e. thousandth of an em">milli-em</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
         <input type="checkbox" id="showProofs" checked="checked" />
         <label for="showProofs">Show proofs</label>
         <br />
-        <span>Width of Broad stems: </span><input type="text" size="3"
-        value="0.1" id="broadProp"><span>em</span><br />
-        <span>Width of Narrow stems: </span><input type="text" size="3" value="0.333"
-        id="narrowProp"><span> &times; broad stem width</span><br />
-        <span>Width of Serifs: </span><input type="text" size="3" value="0.1"
-        id="serifProp"><span>em</span><br />
-        <button id="changeProportions">Change</button>
 
         <div id="proofs">
             <div class="col-1-1">
                 <hr />
-                <span>Proof size: </span><input type="text" id="proofSize" value="200"
-                size="3" />
+            </div>
+            <div style='float:left;'>
+                Proof size:
+                <input type="range" min="50" max="800" step="50" id="proofSize" value="200" />
                 <br />
                 <input type="checkbox" id="showOutlines" checked="checked" />
                 <label for="showOutlines">Show construction lines</label>
@@ -72,8 +101,11 @@
                 <br />
                 <input type="checkbox" id="fillGlyph" checked="checked" />
                 <label for="fillGlyph">Fill glyphs</label>
+                <input type="checkbox" id="strokeGlyph" />
+                <label for="strokeGlyph">Outline glyphs</label>
                 <br />
-                <span>Glyph color: </span><select id="glyphColor">
+                Glyph color:
+                <select id="glyphColor">
                         <option value="black">Black</option>
                         <option value="red">Red</option>
                         <option value="green">Green</option>
@@ -81,21 +113,10 @@
                         <option value="white">White</option>
                 </select>
                 <br />
-                <input type="checkbox" id="strokeGlyph" />
-                <label for="strokeGlyph">Outline glyphs</label>
-                <br />
             </div>
         <div class="glyph">
             <canvas id="glyph-A" width="400" height="400"></canvas>
         </div>
-        <!--
-        <div class="glyph">
-            <canvas id="glyph-Ab" width="400" height="400"></canvas>
-        </div>
-        <div class="glyph">
-            <canvas id="glyph-Ac" width="400" height="400"></canvas>
-        </div>
-        -->
         <div class="glyph">
             <canvas id="glyph-B" width="400" height="400"></canvas>
         </div>
@@ -178,7 +199,7 @@
         <label for="showSample">Show sample</label>
         <div id="sample">
             <hr />
-            <span>Sample text: </span>
+            Sample text: 
             <input type="text" id="sampleText" value="sample" />
             <br />
             <svg width="6in" height="1.1in" viewBox="0,0,600,120" xmlns="http://www.w3.org/2000/svg" version="1.1">

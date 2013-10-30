@@ -47,10 +47,22 @@ redrawProofs = () ->
   return
 
 changeProofSize = () ->
-  size = document.getElementById('proofSize').value | 0
-  document.styleSheets[1].rules[1].style.width = size + 'px'
-  document.styleSheets[1].rules[1].style.height = size + 'px'
-  document.styleSheets[1].rules[2].style.width = (2 * size) + 'px'
+  size = (document.getElementById 'proofSize').value | 0
+
+  sheet = document.styleSheets[0]
+  if sheet.cssRules?
+    canvasRule = sheet.cssRules[1]
+    wideCanvasRule = sheet.cssRules[2]
+  else if sheet.rules?
+    canvasRule = sheet.rules[1]
+    wideCanvasRule = sheet.rules[2]
+  else
+    console.log 'cannot change stylesheet'
+    return
+
+  canvasRule.style.width = size + 'px'
+  canvasRule.style.height = size + 'px'
+  wideCanvasRule.style.width = (2 * size) + 'px'
   return
 
 changeProportions = () ->
@@ -2251,21 +2263,23 @@ GlyphFunctions =
 
     f = @funcs[letter]
     if f != undefined
-        f id, letter, proportions
+      try f id, letter, proportions
+      catch e then console.log 'Exception', e, 'drawing', letter
     else
       console.log 'Cannot find rendering functions for', letter
     return
 
 proportions = {
   aspect: 1
-  broad_stem: 1/9
-  narrow_stem: 1/3
-  serif: 1/9
+  broad_stem: 0.111
+  narrow_stem: 0.33
+  serif: 0.111
 
   readFromDocument: () ->
-    @broad_stem = parseFloat (document.getElementById 'broadProp').value
-    @narrow_stem = parseFloat (document.getElementById 'narrowProp').value
-    @serif = parseFloat (document.getElementById 'serifProp').value
+    broad = 
+    @broad_stem = ((document.getElementById 'broadProp').value | 0) / 1000.0
+    @narrow_stem = ((document.getElementById 'narrowProp').value | 0) / 100.0
+    @serif = ((document.getElementById 'serifProp').value | 0) / 1000.0
     return
 }
 
@@ -2363,13 +2377,29 @@ onEvent = (id, event, callback) ->
     element.attachEvent 'on' + event, callback
   return
 
+bindValueToText = (from, to) ->
+  source = document.getElementById from
+  target = document.getElementById to
+  onEvent from, 'change', () -> target.innerHTML = source.value
+  onEvent from, 'input', () -> target.innerHTML = source.value
+
 onload = () ->
   GlyphFunctions.makeFuncs()
 
+  changeProportions()
   drawProofs()
   drawSampleText()
 
-  onEvent 'changeProportions', 'click', changeProportions
+  bindValueToText 'broadProp', 'broadPropValue'
+  bindValueToText 'serifProp', 'serifPropValue'
+  bindValueToText 'narrowProp', 'narrowPropValue'
+
+  onEvent 'broadProp', 'change', changeProportions
+  onEvent 'serifProp', 'change', changeProportions
+  onEvent 'narrowProp', 'change', changeProportions
+  onEvent 'broadProp', 'input', changeProportions
+  onEvent 'serifProp', 'input', changeProportions
+  onEvent 'narrowProp', 'input', changeProportions
   onEvent 'showProofs', 'change', showProofsChanged
   onEvent 'fillGlyph', 'change', redrawProofs
   onEvent 'strokeGlyph', 'change', redrawProofs
@@ -2377,6 +2407,7 @@ onload = () ->
   onEvent 'showOutlines', 'change', redrawProofs
   onEvent 'glyphColor', 'change', redrawProofs
   onEvent 'proofSize', 'change', changeProofSize
+  onEvent 'proofSize', 'input', changeProofSize
   onEvent 'showSample', 'change', showSampleChanged
   onEvent 'sampleText', 'change', changeSampleText
   return
