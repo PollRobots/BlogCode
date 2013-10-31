@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+    <head>
+<!--
+  Copyright 2013 Paul C. Roberts
+
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file 
+  except in compliance with the License. You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed under the 
+  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, 
+  either express or implied. See the License for the specific language governing permissions and 
+  limitations under the License.
+-->
+    <meta charset="UTF-8">
+    <title>Glyphs by Albrecht Dürer</title>
+    <style>
+        .glyph {
+            float:left;
+        }
+        canvas {
+            width: 200px;
+            height:200px;
+        }
+        canvas.wide {
+            width: 400px
+        }
+        .clear {
+            font-family: Georgia;
+            clear: both;
+        }
+        .col-1-1 {
+            float:left;
+            width:100%;
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Glyphs by Albrecht Dürer</h1>
+    <p>
+        The following letter forms were constructed following the instructions from
+        <a href="http://www.gutenberg.org/files/37103/37103-h/37103-h.htm">
+            <strong>Of the just shaping of letters</strong></a>
+        by Albrecht Dürer
+    </p>
+    <div>
+        <table style='float:right;'>
+            <thead>
+                <tr>
+                    <th colspan="3">Proportions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Width of Broad stems:</td>
+                    <td><input type="range" min="50" max="200" value="111" id="broadProp" /></td>
+                    <td>
+                        <span id="broadPropValue">111</span>
+                        <span title="i.e. thousandth of an em">milli-em</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Width of Narrow stems:</td>
+                    <td><input type="range" min="1" max="100" value="33" id="narrowProp" /></td>
+                    <td><span id="narrowPropValue">33</span>% of broad stem width</td>
+                </tr>
+                <tr>
+                    <td>Width of Serifs:</td>
+                    <td><input type="range" min='0' max='200' value="111" id="serifProp" /></td>
+                    <td>
+                        <span id="serifPropValue">111</span>
+                        <span title="i.e. thousandth of an em">milli-em</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <input type="checkbox" id="showProofs" checked="checked" />
+        <label for="showProofs">Show proofs</label>
+        <br />
+
+        <div id="proofs">
+            <div class="col-1-1">
+                <hr />
+            </div>
+            <div style='float:left;'>
+                Proof size:
+                <input type="range" min="50" max="800" step="50" id="proofSize" value="200" />
+                <br />
+                <input type="checkbox" id="showOutlines" checked="checked" />
+                <label for="showOutlines">Show construction lines</label>
+                <br />
+                <input type="checkbox" id="overshoot" checked="checked" />
+                <label for="overshoot">Overshoot construction lines</label>
+                <br />
+                <input type="checkbox" id="fillGlyph" checked="checked" />
+                <label for="fillGlyph">Fill glyphs</label>
+                <input type="checkbox" id="strokeGlyph" />
+                <label for="strokeGlyph">Outline glyphs</label>
+                <br />
+                Glyph color:
+                <select id="glyphColor">
+                        <option value="black">Black</option>
+                        <option value="red">Red</option>
+                        <option value="green">Green</option>
+                        <option value="blue">Blue</option>
+                        <option value="white">White</option>
+                </select>
+                <br />
+            </div>
+        <div class="glyph">
+            <canvas id="glyph-A" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-B" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-C" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-D" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-E" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-F" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-G" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-H" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-I" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-J" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-K" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-L" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-M" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-N" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-O" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-P" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-Q" class="wide" width="800" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-R" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-S" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-T" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-U" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-V" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-W" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-X" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-Y" width="400" height="400"></canvas>
+        </div>
+        <div class="glyph">
+            <canvas id="glyph-Z" width="400" height="400"></canvas>
+        </div>
+    </div>
+    </div>
+    <div class="clear">
+        <input type="checkbox" id="showSample" checked="checked" />
+        <label for="showSample">Show sample</label>
+        <div id="sample">
+            <hr />
+            Sample text: 
+            <input type="text" id="sampleText" value="sample" />
+            <br />
+            <svg width="6in" height="1.1in" viewBox="0,0,600,120" xmlns="http://www.w3.org/2000/svg" version="1.1">
+
+            <g transform="translate(0,10)">
+                <g transform="scale(80,80)">
+                    <path id="demo0" stroke="none" fill="black" transform="translate(0,0)"/>
+                    <path id="demo1" stroke="none" fill="black" transform="translate(1,0)"/>
+                    <path id="demo2" stroke="none" fill="black" transform="translate(2,0)"/>
+                    <path id="demo3" stroke="none" fill="black" transform="translate(3,0)"/>
+                    <path id="demo4" stroke="none" fill="black" transform="translate(4,0)"/>
+                    <path id="demo5" stroke="none" fill="black" transform="translate(5,0)"/>
+                    <path id="demo6" stroke="none" fill="black" transform="translate(5,0)"/>
+                    <path id="demo7" stroke="none" fill="black" transform="translate(5,0)"/>
+                    <path id="demo8" stroke="none" fill="black" transform="translate(5,0)"/>
+                    <path id="demo9" stroke="none" fill="black" transform="translate(5,0)"/>
+                </g>
+            </g>
+
+            </svg>
+        </div>
+    </div>
+    <div class="clear">
+        <p>PAVLVS&middot;ME&middot;FECIT&middot;A.D.MMXIII</p>
+    </div>
+    <script src='durer.js'></script>
+</div>
+</body>
+</html>
