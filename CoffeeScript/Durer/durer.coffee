@@ -79,13 +79,13 @@ sys =
   canvas: null
   ctx: null
 
-  width:0
-  height:0
-  x_margin:0
-  y_margin:0
+  width: 0
+  height: 0
+  x_margin: 0
+  y_margin: 0
 
-  working_width:0
-  working_height:0
+  working_width: 0
+  working_height: 0
 
   overshoot: true
   showOutlines: true
@@ -251,7 +251,7 @@ class OutlineDrawer
     {
       from: a
       to: c
-      center:cc
+      center: cc
     }
 
   labelPoints: (named_points) ->
@@ -551,83 +551,80 @@ Util =
     right - left
 
 GlyphFunctions = 
-  drawA: (id, variant, proportions) ->
+  initializeGlyph: (id, proportions) ->
     Util.initializeCanvas id
 
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
+    @labels = {}
+    prop = Util.initializeSquare @labels, proportions.aspect
+    @wide = proportions.broad_stem * prop
+    @serif = proportions.serif * prop
+    @narrow = proportions.narrow_stem * @wide
+    return
 
+  drawA: (id, variant, proportions) ->
     if variant != 'b' and variant != 'c'
         variant = 'a'
 
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, b
-    f = named_points.f = midPoint c, d
-    outline.drawLine e, f
+    @labels.e = midPoint @labels.a, @labels.b
+    @labels.f = midPoint @labels.c, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = midPoint a, c
-    h = named_points.h = midPoint b, d
-    outline.drawLine g, h
+    @labels.g = midPoint @labels.a, @labels.c
+    @labels.h = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.g, @labels.h
 
-    i = named_points.i = c.towards d, serif
-    k = named_points.k = d.towards c, serif
+    @labels.i = @labels.c.towards @labels.d, @serif
+    @labels.k = @labels.d.towards @labels.c, @serif
 
-    eleft = e.towards a, narrow
-    eright = eleft.towards b, wide
+    eleft = @labels.e.towards @labels.a, @narrow
+    eright = eleft.towards @labels.b, @wide
 
     if variant == 'b'
-        eleft = e.towards a, wide
-        eright = e.towards b, narrow
+        eleft = @labels.e.towards @labels.a, @wide
+        eright = @labels.e.towards @labels.b, @narrow
 
     if variant == 'a'
-      outline.drawLine i, eleft
-      outline.drawLine k, eright
+      outline.drawLine @labels.i, eleft
+      outline.drawLine @labels.k, eright
     else if variant == 'b'
-      outline.drawLine i, e
-      outline.drawLine e, k
+      outline.drawLine @labels.i, @labels.e
+      outline.drawLine @labels.e, @labels.k
     else if variant == 'c'
-      outline.drawLine i, eleft
-      outline.drawLine k, eright
+      outline.drawLine @labels.i, eleft
+      outline.drawLine @labels.k, eright
 
-    iright = i.towards d, narrow
-    kleft = k.towards c, wide
+    iright = @labels.i.towards @labels.d, @narrow
+    kleft = @labels.k.towards @labels.c, @wide
 
     if variant == 'a'
-      outline.drawLine iright, e
+      outline.drawLine iright, @labels.e
       outline.drawLine kleft, eleft
     else if variant == 'b'
       outline.drawLine iright, eright
       outline.drawLine eleft, kleft
     else if variant == 'c'
-      outline.drawLine iright, e
+      outline.drawLine iright, @labels.e
       outline.drawLine kleft, eleft
 
-    gdown = g.towards c, narrow
-    hdown = h.towards d, narrow
+    gdown = @labels.g.towards @labels.c, @narrow
+    hdown = @labels.h.towards @labels.d, @narrow
     outline.drawLine gdown, hdown
 
-    isl = outline.drawTouchingCircle c, i, eleft
-    isr = outline.drawTouchingCircle e, iright, iright.towards(d, serif)
+    isl = outline.drawTouchingCircle @labels.c, @labels.i, eleft
+    isr = outline.drawTouchingCircle @labels.e, iright, (iright.towards @labels.d, @serif)
 
-    ksr = outline.drawTouchingCircle eright, k, d
-    ksl = outline.drawTouchingCircle kleft.towards(c, serif), kleft, eleft
+    ksr = outline.drawTouchingCircle eright, @labels.k, @labels.d
+    ksl = outline.drawTouchingCircle (kleft.towards @labels.c, @serif), kleft, eleft
 
     if variant == 'a'
-      ert = eright.towards k, serif / 2
+      ert = eright.towards @labels.k, @serif / 2
       outline.drawLine eright, ert
       dx = ert.x - eright.x
       dy = ert.y - eright.y
@@ -637,20 +634,20 @@ GlyphFunctions =
       tcct = new Point tcc.x - dx, tcc.y - dy
       outline.drawLine tcc, tcct
 
-      outline.drawBezier tcct, tcct.towards(a, serif / 2), eleft.towards(k, serif / 2), eleft
+      outline.drawBezier tcct, (tcct.towards @labels.a, @serif / 2), (eleft.towards @labels.k, @serif / 2), eleft
     else if variant == 'c'
-        esl = outline.drawTouchingCircle i, eleft, eleft.towards(a, serif)
+        esl = outline.drawTouchingCircle @labels.i, eleft, (eleft.towards @labels.a, @serif)
 
     render = new FillShape sys.ctx
 
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc isl, true
     if variant == 'a'
       render.lineTo eleft
-      render.addBezier eleft.towards(k, serif / 2), tcct.towards(a, serif / 2), tcct
-      render.addArc {from:tcct, to:eright, center:tcc}, true
+      render.addBezier (eleft.towards @labels.k, @serif / 2), (tcct.towards @labels.a, @serif / 2), tcct
+      render.addArc {from: tcct, to: eright, center: tcc}, true
     else if variant == 'b'
-        render.lineTo e
+        render.lineTo @labels.e
     else if variant == 'c'
       render.lineTo esl.from
       render.addArc esl, true
@@ -662,432 +659,380 @@ GlyphFunctions =
     render.addArc ksl, true
     render.lineTo intersect(kleft, eleft, gdown, hdown)
     if variant == 'a' or variant == 'c'
-      render.lineTo intersect(iright, e, gdown, hdown)
+      render.lineTo intersect(iright, @labels.e, gdown, hdown)
     else if variant == 'b'
       render.lineTo intersect(iright, eright, gdown, hdown)
 
     render.lineTo isr.from
     render.addArc isr, true
-    render.lineTo c
+    render.lineTo @labels.c
 
     if variant == 'a' or variant == 'c'
-      render.moveTo intersect(g, h, iright, e)
-      render.lineTo intersect(kleft, eleft, g, h)
-      render.lineTo intersect(iright, e, kleft, eleft)
+      render.moveTo (intersect @labels.g, @labels.h, iright, @labels.e)
+      render.lineTo (intersect kleft, eleft, @labels.g, @labels.h)
+      render.lineTo (intersect iright, @labels.e, kleft, eleft)
     else if variant == 'b'
-      render.moveTo intersect(g, h, iright, eright)
-      render.lineTo intersect(kleft, eleft, g, h)
-      render.lineTo intersect(iright, eright, kleft, eleft)
+      render.moveTo (intersect @labels.g, @labels.h, iright, eright)
+      render.lineTo (intersect kleft, eleft, @labels.g, @labels.h)
+      render.lineTo (intersect iright, eright, kleft, eleft)
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawB: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine e, f
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = midPoint a, e
-    h = named_points.h = midPoint b, f
-    outline.drawLine g, h
+    @labels.g = midPoint @labels.a, @labels.e
+    @labels.h = midPoint @labels.b, @labels.f
+    outline.drawLine @labels.g, @labels.h
 
-    ll_tl = a.towards b, serif
-    ll_tr = ll_tl.towards b, wide
-    ll_bl = c.towards d, serif
-    ll_br = ll_bl.towards d, wide
+    ll_tl = @labels.a.towards @labels.b, @serif
+    ll_tr = ll_tl.towards @labels.b, @wide
+    ll_bl = @labels.c.towards @labels.d, @serif
+    ll_br = ll_bl.towards @labels.d, @wide
     outline.drawLine ll_tl, ll_bl
     outline.drawLine ll_tr, ll_br
 
-    tls = outline.drawTouchingCircle ll_bl, ll_tl, a
-    bls = outline.drawTouchingCircle c, ll_bl, ll_tl
+    tls = outline.drawTouchingCircle ll_bl, ll_tl, @labels.a
+    bls = outline.drawTouchingCircle @labels.c, ll_bl, ll_tl
 
-    i = named_points.i = ll_tr.towards b, wide
-    k = named_points.k = ll_br.towards d, wide
-    outline.drawLine i, k
+    @labels.i = ll_tr.towards @labels.b, @wide
+    @labels.k = ll_br.towards @labels.d, @wide
+    outline.drawLine @labels.i, @labels.k
 
-    l = named_points.l = intersect g, h, i, k
+    @labels.l = intersect @labels.g, @labels.h, @labels.i, @labels.k
 
-    tl_l = a.towards c, narrow
-    tl_r = i.towards k, narrow
+    tl_l = @labels.a.towards @labels.c, @narrow
+    tl_r = @labels.i.towards @labels.k, @narrow
     outline.drawLine tl_l, tl_r
 
-    ml_l = e.towards a, narrow
-    ml_r = (intersect e, f, i, k).towards i, narrow
+    ml_l = @labels.e.towards @labels.a, @narrow
+    ml_r = (intersect @labels.e, @labels.f, @labels.i, @labels.k).towards @labels.i, @narrow
 
-    m = named_points.m = ml_r
+    @labels.m = ml_r
 
     outline.drawLine ml_l, ml_r
-    outline.drawCircle l, ml_r
-    tir = l.distance ml_r
-    n = named_points.n = l.towards h, tir + wide
-    tor = l.distance i
-    toc = n.towards g, tor
-    outline.drawCircle toc, n
+    outline.drawCircle @labels.l, ml_r
+    tir = @labels.l.distance ml_r
+    @labels.n = @labels.l.towards @labels.h, tir + @wide
+    tor = @labels.l.distance @labels.i
+    toc = @labels.n.towards @labels.g, tor
+    outline.drawCircle toc, @labels.n
 
     if variant == 'p'
-      ll_brr = ll_br.towards d, serif
+      ll_brr = ll_br.towards @labels.d, @serif
       brs = outline.drawTouchingCircle ll_tr, ll_br, ll_brr
     else if variant == 'r'
-      ll_brr = ll_br.towards d, serif
+      ll_brr = ll_br.towards @labels.d, @serif
       brs = outline.drawTouchingCircle ll_tr, ll_br, ll_brr
 
-      q = named_points.q = midPoint a, b
-      r = named_points.r = midPoint c, d
-      outline.drawLine q, r
+      @labels.q = midPoint @labels.a, @labels.b
+      @labels.r = midPoint @labels.c, @labels.d
+      outline.drawLine @labels.q, @labels.r
 
-      s = named_points.s = (vertCircle toc, tor, q.x).lower
+      @labels.s = (vertCircle toc, tor, @labels.q.x).lower
 
-      lr_c = d.towards c, serif
-      outline.drawLine s, lr_c
-      lr_lc = lr_c.towards c, wide
-      lr_tl = intersect(e, f, s, lr_c).towards(e, wide)
+      lr_c = @labels.d.towards @labels.c, @serif
+      outline.drawLine @labels.s, lr_c
+      lr_lc = lr_c.towards @labels.c, @wide
+      lr_tl = (intersect @labels.e, @labels.f, @labels.s, lr_c).towards @labels.e, @wide
       outline.drawLine lr_tl, lr_lc
 
-      tu = outline.drawTouchingCircle s, lr_c, d
-      tl = outline.drawTouchingCircle d, lr_lc, lr_tl
+      tu = outline.drawTouchingCircle @labels.s, lr_c, @labels.d
+      tl = outline.drawTouchingCircle @labels.d, lr_lc, lr_tl
     else
-      nt = new Point n.x, a.y
-      nb = new Point n.x, c.y
+      nt = new Point @labels.n.x, @labels.a.y
+      nb = new Point @labels.n.x, @labels.c.y
       outline.drawLine nt, nb
 
-      o = named_points.o = midPoint ml_l, c
-      p = named_points.p = new Point d.x, o.y
-      outline.drawLine o, p
+      @labels.o = midPoint ml_l, @labels.c
+      @labels.p = new Point @labels.d.x, @labels.o.y
+      outline.drawLine @labels.o, @labels.p
 
-      bl_l = c.towards a, narrow
-      bl_r = nb.towards nt, narrow
+      bl_l = @labels.c.towards @labels.a, @narrow
+      bl_r = nb.towards nt, @narrow
       outline.drawLine bl_l, bl_r
-      q = named_points.q = intersect i, k, bl_l, bl_r
+      @labels.q = intersect @labels.i, @labels.k, bl_l, bl_r
 
-      r = named_points.r = intersect o, p, nt, nb
-      lir = o.distance e
-      lic = r.towards o, lir
-      outline.drawCircle lic, r
+      @labels.r = intersect @labels.o, @labels.p, nt, nb
+      lir = @labels.o.distance @labels.e
+      lic = @labels.r.towards @labels.o, lir
+      outline.drawCircle lic, @labels.r
 
-      s = named_points.s = r.towards p, wide
-      lor = o.distance c
-      loc = s.towards o, lor
-      outline.drawCircle loc, s
+      @labels.s = @labels.r.towards @labels.p, @wide
+      lor = @labels.o.distance @labels.c
+      loc = @labels.s.towards @labels.o, lor
+      outline.drawCircle loc, @labels.s
 
-      icr = wide * 2 / 3
-      icc_l = bl_l.towards bl_r, serif + wide + icr
+      icr = @wide * 2 / 3
+      icc_l = bl_l.towards bl_r, @serif + @wide + icr
       icc = outline.drawTouchingCircle ll_tr, intersect(bl_l, bl_r, ll_tr, ll_br), icc_l
 
     render = new FillShape sys.ctx
 
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc bls, true
     render.addArc tls, true
 
     if variant == 'p'
-      render.addArc {from: new Point(toc.x, toc.y - tor), to: new Point(toc.x, toc.y + tor), center:toc}, false
-      render.lineTo intersect(e, f, ll_tr, ll_br)
+      render.addArc {from: new Point(toc.x, toc.y - tor), to: new Point(toc.x, toc.y + tor), center: toc}, false
+      render.lineTo (intersect @labels.e, @labels.f, ll_tr, ll_br)
       render.addArc brs, true
-      render.lineTo c
+      render.lineTo @labels.c
 
-      render.moveTo intersect(tl_l, tl_r, ll_tr, ll_br)
-      render.lineTo intersect(ml_l, ml_r, ll_tr, ll_br)
-      render.addArc {from: ml_r, to: tl_r, center:l}, true
+      render.moveTo (intersect tl_l, tl_r, ll_tr, ll_br)
+      render.lineTo (intersect ml_l, ml_r, ll_tr, ll_br)
+      render.addArc {from: ml_r, to: tl_r, center:@labels.l}, true
     else if variant == 'r'
-      render.addArc {from: new Point(toc.x, toc.y - tor), to:s, center:toc}, false
+      render.addArc {from: new Point(toc.x, toc.y - tor), to:@labels.s, center: toc}, false
       render.addArc tu, true
       render.addArc tl, false
       render.lineTo lr_tl
-      render.lineTo intersect(e, f, ll_tr, ll_br)
+      render.lineTo (intersect @labels.e, @labels.f, ll_tr, ll_br)
       render.addArc brs, true
-      render.lineTo c
+      render.lineTo @labels.c
 
-      render.moveTo intersect(tl_l, tl_r, ll_tr, ll_br)
-      render.lineTo intersect(ml_l, ml_r, ll_tr, ll_br)
-      render.addArc {from: ml_r, to: tl_r, center:l}, true
+      render.moveTo (intersect tl_l, tl_r, ll_tr, ll_br)
+      render.lineTo (intersect ml_l, ml_r, ll_tr, ll_br)
+      render.addArc {from: ml_r, to: tl_r, center:@labels.l}, true
     else
-      pp = intersectCircles(toc, tor, loc, lor).left
+      pp = (intersectCircles toc, tor, loc, lor).left
 
-      render.addArc {from:new Point(toc.x, toc.y - tor), to:pp, center:toc}, false
-      render.addArc {from:pp, to:new Point(loc.x, loc.y + lor), center:loc}, false
-      render.lineTo c
+      render.addArc {from: new Point(toc.x, toc.y - tor), to: pp, center: toc}, false
+      render.addArc {from: pp, to: new Point(loc.x, loc.y + lor), center: loc}, false
+      render.lineTo @labels.c
 
-      render.moveTo intersect(tl_l, tl_r, ll_tr, ll_br)
-      render.lineTo intersect(ml_l, ml_r, ll_tr, ll_br)
-      render.addArc {from:ml_r, to:tl_r, center:l}, true
-      render.lineTo intersect(tl_l, tl_r, ll_tr, ll_br)
+      render.moveTo (intersect tl_l, tl_r, ll_tr, ll_br)
+      render.lineTo (intersect ml_l, ml_r, ll_tr, ll_br)
+      render.addArc {from: ml_r, to: tl_r, center:@labels.l}, true
+      render.lineTo (intersect tl_l, tl_r, ll_tr, ll_br)
 
-      render.moveTo intersect(e, f, ll_tr, ll_br)
+      render.moveTo (intersect @labels.e, @labels.f, ll_tr, ll_br)
       render.addArc icc, true
-      render.addArc {from:new Point(lic.x, lic.y + lir), to:new Point(lic.x, lic.y - lir), center:lic}, true
+      render.addArc {from: new Point(lic.x, lic.y + lir), to: new Point(lic.x, lic.y - lir), center: lic}, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawC: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
 
-    outline.drawLine e, f
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = b.towards a, wide
-    h = named_points.h = d.towards c, wide
-    outline.drawLine g, h
+    @labels.g = @labels.b.towards @labels.a, @wide
+    @labels.h = @labels.d.towards @labels.c, @wide
+    outline.drawLine @labels.g, @labels.h
 
-    outline.drawLine c, b
-    i = named_points.i = midPoint e, f
-    k = named_points.k = i.towards f, wide
+    outline.drawLine @labels.c, @labels.b
+    @labels.i = midPoint @labels.e, @labels.f
+    @labels.k = @labels.i.towards @labels.f, @wide
 
-    radius = i.distance e
-    outline.drawCircle i, e
-    outline.drawCircle k, f.towards(e, -wide)
+    radius = @labels.i.distance @labels.e
+    outline.drawCircle @labels.i, @labels.e
+    outline.drawCircle @labels.k, (@labels.f.towards @labels.e, -@wide)
 
-    tr = f.towards e, wide / 2
-    tl = d.towards c, wide / 2
+    tr = @labels.f.towards @labels.e, @wide / 2
+    tl = @labels.d.towards @labels.c, @wide / 2
 
     outline.drawLine tr, tl
 
-    ik = midPoint i, k
-    inner_radius = radius - narrow
-    outline.drawCircle ik, ik.towards(e, inner_radius)
+    ik = midPoint @labels.i, @labels.k
+    inner_radius = radius - @narrow
+    outline.drawCircle ik, (ik.towards @labels.e, inner_radius)
 
     render = new FillShape sys.ctx
 
-    ubr = vertCircle(i, radius, tr.x).lower
-    lbr = vertCircle(k, radius, tr.x).lower
+    ubr = (vertCircle @labels.i, radius, tr.x).lower
+    lbr = (vertCircle @labels.k, radius, tr.x).lower
 
-    utr = vertCircle(k, radius, g.x).upper
-    ltr = vertCircle(i, radius, g.x).upper
+    utr = (vertCircle @labels.k, radius, @labels.g.x).upper
+    ltr = (vertCircle @labels.i, radius, @labels.g.x).upper
 
     render.moveTo ubr
-    render.addArc {from:lbr, to:new Point(k.x, c.y), center:k}, false
-    render.addArc {from: new Point(i.x, c.y), to: new Point(i.x, a.y), center:i}, false
-    render.addArc {from: new Point(k.x, a.y), to: utr, center:k}, false
+    render.addArc {from: lbr, to: (new Point @labels.k.x, @labels.c.y), center: @labels.k}, false
+    render.addArc {from: (new Point @labels.i.x, @labels.c.y), to: (new Point @labels.i.x, @labels.a.y), center: @labels.i}, false
+    render.addArc {from: (new Point @labels.k.x, @labels.a.y), to: utr, center: @labels.k}, false
     render.lineTo ltr
 
-    lo_in = intersectCircles i, radius, ik, inner_radius
-    render.addArc {from: ltr, to: lo_in.left, center:i}, true
+    lo_in = intersectCircles @labels.i, radius, ik, inner_radius
+    render.addArc {from: ltr, to: lo_in.left, center: @labels.i}, true
 
-    ro_in = intersectCircles k, radius, ik, inner_radius
+    ro_in = intersectCircles @labels.k, radius, ik, inner_radius
     render.addArc {from: lo_in.left, to: ro_in.right, center: ik}, true
 
-    render.addArc {from: ro_in.right, to:ro_in.left, center: k}, true
-    render.addArc {from:ro_in.left, to:lo_in.right, center:ik}, true
-    render.addArc {from:lo_in.right, to: ubr, center:i}, true
+    render.addArc {from: ro_in.right, to: ro_in.left, center: @labels.k}, true
+    render.addArc {from: ro_in.left, to: lo_in.right, center: ik}, true
+    render.addArc {from: lo_in.right, to: ubr, center: @labels.i}, true
 
     render.closeAndFill()
 
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawD: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine e, f
+    @labels.e = @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = midPoint a, b
-    h = named_points.h = midPoint c, d
-    outline.drawLine g, h
+    @labels.g = @labels.g = midPoint @labels.a, @labels.b
+    @labels.h = @labels.h = midPoint @labels.c, @labels.d
+    outline.drawLine @labels.g, @labels.h
 
-    i = named_points.i = intersect e, f, g, h
+    @labels.i = @labels.i = intersect @labels.e, @labels.f, @labels.g, @labels.h
 
-    ll_bl = c.towards d, serif
-    ll_br = ll_bl.towards d, wide
+    ll_bl = @labels.c.towards @labels.d, @serif
+    ll_br = ll_bl.towards @labels.d, @wide
 
-    ll_tl = a.towards b, serif
-    ll_tr = ll_tl.towards b, wide
+    ll_tl = @labels.a.towards @labels.b, @serif
+    ll_tr = ll_tl.towards @labels.b, @wide
 
     outline.drawLine ll_bl, ll_tl
     outline.drawLine ll_br, ll_tr
 
-    lls = outline.drawTouchingCircle c, ll_bl, ll_tl
-    tls = outline.drawTouchingCircle ll_bl, ll_tl, a
+    lls = outline.drawTouchingCircle @labels.c, ll_bl, ll_tl
+    tls = outline.drawTouchingCircle ll_bl, ll_tl, @labels.a
 
-    outline.drawCircle i, f
-    k = named_points.k = f.towards e, wide
+    outline.drawCircle @labels.i, @labels.f
+    @labels.k = @labels.k = @labels.f.towards @labels.e, @wide
 
-    tl_l = a.towards c, narrow
-    tl_r = g.towards h, narrow
+    tl_l = @labels.a.towards @labels.c, @narrow
+    tl_r = @labels.g.towards @labels.h, @narrow
     outline.drawLine tl_l, tl_r
 
-    bl_l = c.towards a, narrow
-    bl_r = h.towards g, narrow
+    bl_l = @labels.c.towards @labels.a, @narrow
+    bl_r = @labels.h.towards @labels.g, @narrow
     outline.drawLine bl_l, bl_r
 
-    innerRadius = tl_l.distance e
-    l = named_points.l = k.towards e, innerRadius
+    innerRadius = tl_l.distance @labels.e
+    @labels.l = @labels.l = @labels.k.towards @labels.e, innerRadius
 
-    outline.drawCircle l, k
+    outline.drawCircle @labels.l, @labels.k
 
-    isp = bl_l.towards bl_r, serif + wide + serif
-    _is = outline.drawTouchingCircle ll_tr, intersect(ll_tr, ll_br, bl_l, bl_r), isp
+    isp = bl_l.towards bl_r, @serif + @wide + @serif
+    _is = outline.drawTouchingCircle ll_tr, (intersect ll_tr, ll_br, bl_l, bl_r), isp
 
     render = new FillShape sys.ctx
 
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc lls, true
     render.addArc tls, true
-    render.addArc {from:g, to:h, center:i}, false
-    render.lineTo c
+    render.addArc {from: @labels.g, to: @labels.h, center: @labels.i}, false
+    render.lineTo @labels.c
 
     render.moveTo intersect(ll_tr, ll_br, tl_l, tl_r)
     render.addArc _is, true
-    render.addArc {to:new Point(l.x, tl_l.y), from:new Point(l.x, bl_l.y), center:l}, true
+    render.addArc {to: (new Point @labels.l.x, tl_l.y), from: (new Point @labels.l.x, bl_l.y), center: @labels.l}, true
 
     render.closeAndFill()
 
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawE: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
     if variant != 'l'
-      e = named_points.e = midPoint a, c
-      f = named_points.f = midPoint b, d
-      outline.drawLine e, f
+      @labels.e = @labels.e = midPoint @labels.a, @labels.c
+      @labels.f = @labels.f = midPoint @labels.b, @labels.d
+      outline.drawLine @labels.e, @labels.f
 
-    ll_tl = a.towards b, serif
-    ll_tr = ll_tl.towards b, wide
+    ll_tl = @labels.a.towards @labels.b, @serif
+    ll_tr = ll_tl.towards @labels.b, @wide
 
-    ll_bl = c.towards d, serif
-    ll_br = ll_bl.towards d, wide
+    ll_bl = @labels.c.towards @labels.d, @serif
+    ll_br = ll_bl.towards @labels.d, @wide
 
     outline.drawLine ll_tl, ll_bl
     outline.drawLine ll_tr, ll_br
 
-    tls = outline.drawTouchingCircle ll_bl, ll_tl, a
-    bls = outline.drawTouchingCircle c, ll_bl, ll_tl
+    tls = outline.drawTouchingCircle ll_bl, ll_tl, @labels.a
+    bls = outline.drawTouchingCircle @labels.c, ll_bl, ll_tl
     if variant == 'l'
-      trs = outline.drawTouchingCircle ll_tr.towards(b, serif), ll_tr, ll_br
+      trs = outline.drawTouchingCircle (ll_tr.towards @labels.b, @serif), ll_tr, ll_br
 
-    tl_tr = a.towards b, (6 - 1/3) * wide
-    tl_trd = new Point tl_tr.x, c.y
+    tl_tr = @labels.a.towards @labels.b, (6 - 1/3) * @wide
+    tl_trd = new Point tl_tr.x, @labels.c.y
     outline.drawLine tl_tr, tl_trd
 
     if variant != 'l'
-      tl_l = a.towards c, narrow
-      tl_r = tl_tr.towards tl_trd, narrow
+      tl_l = @labels.a.towards @labels.c, @narrow
+      tl_r = tl_tr.towards tl_trd, @narrow
       outline.drawLine tl_l, tl_r
 
-      tlrs = outline.drawTouchingCircle tl_tr.towards(tl_trd, wide), tl_r, tl_l
+      tlrs = outline.drawTouchingCircle (tl_tr.towards tl_trd, @wide), tl_r, tl_l
 
-      ml_l = e.towards a, narrow
-      ml_lr = e.towards f, (5 - 1/3) * wide
+      ml_l = @labels.e.towards @labels.a, @narrow
+      ml_lr = @labels.e.towards @labels.f, (5 - 1/3) * @wide
       ml_r = new Point ml_lr.x, ml_l.y
 
       outline.drawLine ml_l, ml_r
 
-      ml_rl = ml_r.towards ml_lr, wide + narrow / 2
-      ml_ru = ml_rl.towards ml_r, 2 * wide
+      ml_rl = ml_r.towards ml_lr, @wide + @narrow / 2
+      ml_ru = ml_rl.towards ml_r, 2 * @wide
 
-      outline.drawLine ml_ru, new Point(ml_r.x, c.y)
+      outline.drawLine ml_ru, (new Point ml_r.x, @labels.c.y)
       mlus = outline.drawTouchingCircle ml_l, ml_r, ml_ru
-      mlls = outline.drawTouchingCircle ml_rl, ml_lr, e
+      mlls = outline.drawTouchingCircle ml_rl, ml_lr, @labels.e
 
     if variant != 'f'
-      bl_l = c.towards a, narrow
-      bl_br = c.towards d, (7 - 1/3) * wide
+      bl_l = @labels.c.towards @labels.a, @narrow
+      bl_br = @labels.c.towards @labels.d, (7 - 1/3) * @wide
       bl_r = new Point bl_br.x, bl_l.y
 
       outline.drawLine bl_l, bl_r
-      blrs = outline.drawTouchingCircle intersect(tl_tr, tl_trd, bl_l, bl_r), bl_r, b
+      blrs = outline.drawTouchingCircle (intersect tl_tr, tl_trd, bl_l, bl_r), bl_r, @labels.b
       outline.drawLine blrs.to, bl_br
 
       blls = outline.drawTouchingCircle ll_tr,
         intersect ll_tr, ll_br, bl_l, bl_r
-        bl_l.towards bl_r, serif + wide + (wide - narrow / 2)
+        bl_l.towards bl_r, @serif + @wide + (@wide - @narrow / 2)
     else
-      blls = outline.drawTouchingCircle ll_tr, ll_br, ll_br.towards(d, serif)
+      blls = outline.drawTouchingCircle ll_tr, ll_br, (ll_br.towards @labels.d, @serif)
 
     render = new FillShape sys.ctx
 
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc bls, true
     render.addArc tls, true
     if variant != 'l'
       render.lineTo tl_tr
       render.addArc tlrs, true
-      render.lineTo intersect(tl_l, tl_r, ll_tr, ll_br)
-      render.lineTo intersect(ll_tr, ll_br, ml_l, ml_r)
+      render.lineTo (intersect tl_l, tl_r, ll_tr, ll_br)
+      render.lineTo (intersect ll_tr, ll_br, ml_l, ml_r)
       render.addArc mlus, true
       render.addArc mlls, true
-      render.lineTo intersect(ll_tr, ll_br, e, f)
+      render.lineTo (intersect ll_tr, ll_br, @labels.e, @labels.f)
     else 
       render.addArc trs, true
 
@@ -1097,203 +1042,163 @@ GlyphFunctions =
       render.lineTo bl_br
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawG: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine(e, f)
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = b.towards a, wide
-    h = named_points.h = d.towards c, wide
-    outline.drawLine g, h
+    @labels.g = @labels.b.towards @labels.a, @wide
+    @labels.h = @labels.d.towards @labels.c, @wide
+    outline.drawLine @labels.g, @labels.h
 
-    outline.drawLine b, c
+    outline.drawLine @labels.b, @labels.c
 
-    i = named_points.i = intersect b, c, e, f
-    k = named_points.k = i.towards f, wide
+    @labels.i = intersect @labels.b, @labels.c, @labels.e, @labels.f
+    @labels.k = @labels.i.towards @labels.f, @wide
 
-    outline.drawCircle i, e
-    outline.drawCircle k, e.towards(f, wide)
+    outline.drawCircle @labels.i, @labels.e
+    outline.drawCircle @labels.k, (@labels.e.towards @labels.f, @wide)
 
-    rl_ll = h.towards c, wide
-    rli = intersect e, f, g, h
-    rl_tl = rli.towards e, wide
+    rl_ll = @labels.h.towards @labels.c, @wide
+    rli = intersect @labels.e, @labels.f, @labels.g, @labels.h
+    rl_tl = rli.towards @labels.e, @wide
     outline.drawLine rl_ll, rl_tl
 
-    rlls = outline.drawTouchingCircle rl_ll, rl_tl, rl_tl.towards(e, serif)
-    rlrs = outline.drawTouchingCircle f, rli, h
+    rlls = outline.drawTouchingCircle rl_ll, rl_tl, (rl_tl.towards @labels.e, @serif)
+    rlrs = outline.drawTouchingCircle @labels.f, rli, @labels.h
 
-    icc = midPoint i, k
-    outerRadius = i.distance e
-    icr = outerRadius - narrow
-    icl = icc.towards e, icr
+    icc = midPoint @labels.i, @labels.k
+    outerRadius = @labels.i.distance @labels.e
+    icr = outerRadius - @narrow
+    icl = icc.towards @labels.e, icr
     outline.drawCircle icc, icl
 
     render = new FillShape sys.ctx
 
-    gk_v = vertCircle k, outerRadius, g.x
+    gk_v = vertCircle @labels.k, outerRadius, @labels.g.x
 
     render.moveTo gk_v.upper
 
-    lo_in = intersectCircles i, outerRadius, icc, icr
-    ro_in = intersectCircles k, outerRadius, icc, icr
-    lo_v = vertCircle i, outerRadius, i.x
-    ro_v = vertCircle k, outerRadius, k.x
+    lo_in = intersectCircles @labels.i, outerRadius, icc, icr
+    ro_in = intersectCircles @labels.k, outerRadius, icc, icr
+    lo_v = vertCircle @labels.i, outerRadius, @labels.i.x
+    ro_v = vertCircle @labels.k, outerRadius, @labels.k.x
 
-    render.addArc {from: vertCircle(icc, icr, g.x).upper, to:ro_in.right, center:icc}, true
-    # addArc {from: lo_in.left, to: ro_in.right, center:icc}, true
-    render.addArc {from: ro_in.right, to: ro_in.left, center:k}, true
+    render.addArc {from: (vertCircle icc, icr, @labels.g.x).upper, to: ro_in.right, center: icc}, true
+    # addArc {from: lo_in.left, to: ro_in.right, center: icc}, true
+    render.addArc {from: ro_in.right, to: ro_in.left, center: @labels.k}, true
 
-    render.addArc {from:ro_in.left, to:vertCircle(icc, icr, rl_ll.x).lower, center:icc}, true
+    render.addArc {from: ro_in.left, to: (vertCircle icc, icr, rl_ll.x).lower, center: icc}, true
     render.addArc rlls, true
     render.addArc rlrs, true
 
-    render.addArc {from:gk_v.lower, to:ro_v.lower, center:k}, false
-    render.addArc {from:lo_v.lower, to:lo_v.upper, center:i}, false
-    render.addArc {from:ro_v.upper, to:gk_v.upper, center:k}, false
+    render.addArc {from: gk_v.lower, to: ro_v.lower, center: @labels.k}, false
+    render.addArc {from: lo_v.lower, to: lo_v.upper, center: @labels.i}, false
+    render.addArc {from: ro_v.upper, to: gk_v.upper, center: @labels.k}, false
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawH: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine e, f
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    ll_bl = c.towards d, serif
-    ll_br = ll_bl.towards d, wide
-    ll_brs = ll_br.towards d, serif
+    ll_bl = @labels.c.towards @labels.d, @serif
+    ll_br = ll_bl.towards @labels.d, @wide
+    ll_brs = ll_br.towards @labels.d, @serif
 
-    ll_tl = a.towards b, serif
-    ll_tr = ll_tl.towards b, wide
-    ll_trs = ll_tr.towards b, serif
+    ll_tl = @labels.a.towards @labels.b, @serif
+    ll_tr = ll_tl.towards @labels.b, @wide
+    ll_trs = ll_tr.towards @labels.b, @serif
 
     outline.drawLine ll_bl, ll_tl
     outline.drawLine ll_br, ll_tr
-    lbls = outline.drawTouchingCircle c, ll_bl, ll_tl
-    ltls = outline.drawTouchingCircle ll_bl, ll_tl, a
+    lbls = outline.drawTouchingCircle @labels.c, ll_bl, ll_tl
+    ltls = outline.drawTouchingCircle ll_bl, ll_tl, @labels.a
     ltrs = outline.drawTouchingCircle ll_trs, ll_tr, ll_br
     lbrs = outline.drawTouchingCircle ll_tr, ll_br, ll_brs
 
-    rl_br = d.towards c, serif
-    rl_bl = rl_br.towards c, wide
-    rl_bls = rl_bl.towards c, serif
+    rl_br = @labels.d.towards @labels.c, @serif
+    rl_bl = rl_br.towards @labels.c, @wide
+    rl_bls = rl_bl.towards @labels.c, @serif
 
-    rl_tr = b.towards a, serif
-    rl_tl = rl_tr.towards a, wide
-    rl_tls = rl_tl.towards a, serif
+    rl_tr = @labels.b.towards @labels.a, @serif
+    rl_tl = rl_tr.towards @labels.a, @wide
+    rl_tls = rl_tl.towards @labels.a, @serif
 
     outline.drawLine rl_tr, rl_br
     outline.drawLine rl_tl, rl_bl
 
     rbls = outline.drawTouchingCircle rl_bls, rl_bl, rl_tl
     rtls = outline.drawTouchingCircle rl_bl, rl_tl, rl_tls
-    rtrs = outline.drawTouchingCircle b, rl_tr, rl_br
-    rbrs = outline.drawTouchingCircle rl_tr, rl_br, d
+    rtrs = outline.drawTouchingCircle @labels.b, rl_tr, rl_br
+    rbrs = outline.drawTouchingCircle rl_tr, rl_br, @labels.d
 
-    ml_l = e.towards a, narrow
-    ml_r = f.towards b, narrow
+    ml_l = @labels.e.towards @labels.a, @narrow
+    ml_r = @labels.f.towards @labels.b, @narrow
     outline.drawLine ml_l, ml_r
 
     render = new FillShape sys.ctx
 
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc lbls, true
     render.addArc ltls, true
     render.addArc ltrs, true
-    render.lineTo intersect(ml_l, ml_r, ll_tr, ll_br)
-    render.lineTo intersect(ml_l, ml_r, rl_tl, rl_bl)
+    render.lineTo (intersect ml_l, ml_r, ll_tr, ll_br)
+    render.lineTo (intersect ml_l, ml_r, rl_tl, rl_bl)
     render.addArc rtls, true
     render.addArc rtrs, true
     render.addArc rbrs, true
     render.addArc rbls, true
-    render.lineTo intersect(e, f, rl_tl, rl_bl)
-    render.lineTo intersect(e, f, ll_tr, ll_br)
+    render.lineTo (intersect @labels.e, @labels.f, rl_tl, rl_bl)
+    render.lineTo (intersect @labels.e, @labels.f, ll_tr, ll_br)
     render.addArc lbrs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawI: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    ab = midPoint a, b
-    cd = midPoint c, d
+    ab = midPoint @labels.a, @labels.b
+    cd = midPoint @labels.c, @labels.d
 
-    bl = cd.towards c, wide / 2
-    bll = bl.towards c, serif
+    bl = cd.towards @labels.c, @wide / 2
+    bll = bl.towards @labels.c, @serif
 
-    br = cd.towards d, wide / 2
-    brr = br.towards d, serif
+    br = cd.towards @labels.d, @wide / 2
+    brr = br.towards @labels.d, @serif
 
-    tl = ab.towards a, wide / 2
-    tll = tl.towards a, serif
+    tl = ab.towards @labels.a, @wide / 2
+    tll = tl.towards @labels.a, @serif
 
-    tr = ab.towards b, wide / 2
-    trr = tr.towards b, serif
+    tr = ab.towards @labels.b, @wide / 2
+    trr = tr.towards @labels.b, @serif
 
     outline.drawLine tl, bl
     outline.drawLine tr, br
@@ -1312,79 +1217,66 @@ GlyphFunctions =
     render.addArc brs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawK: (id, variant, proportions) ->
-    Util.initializeCanvas(id)
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine e, f
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    ll_bl = c.towards d, serif
-    ll_br = ll_bl.towards d, wide
-    ll_brr = ll_br.towards d, serif
+    ll_bl = @labels.c.towards @labels.d, @serif
+    ll_br = ll_bl.towards @labels.d, @wide
+    ll_brr = ll_br.towards @labels.d, @serif
 
-    ll_tl = a.towards b, serif
-    ll_tr = ll_tl.towards b, wide
-    ll_trr = ll_tr.towards b, serif
+    ll_tl = @labels.a.towards @labels.b, @serif
+    ll_tr = ll_tl.towards @labels.b, @wide
+    ll_trr = ll_tr.towards @labels.b, @serif
 
     outline.drawLine ll_tl, ll_bl
     outline.drawLine ll_tr, ll_br
 
-    lls = outline.drawTouchingCircle c, ll_bl, ll_tl
-    uls = outline.drawTouchingCircle ll_bl, ll_tl, a
+    lls = outline.drawTouchingCircle @labels.c, ll_bl, ll_tl
+    uls = outline.drawTouchingCircle ll_bl, ll_tl, @labels.a
     urs = outline.drawTouchingCircle ll_trr, ll_tr, ll_br
     lrs = outline.drawTouchingCircle ll_tr, ll_br, ll_brr
 
-    rul_l = intersect e, f, ll_tr, ll_br
-    rul_r = intersect a, b, rul_l, (new Point rul_l.x + b.x - c.x, rul_l.y + b.y - c.y)
+    rul_l = intersect @labels.e, @labels.f, ll_tr, ll_br
+    rul_r = intersect @labels.a, @labels.b, rul_l, (new Point rul_l.x + @labels.b.x - @labels.c.x, rul_l.y + @labels.b.y - @labels.c.y)
     outline.drawLine rul_l, rul_r
-    rul_rr = rul_r.towards b, serif
+    rul_rr = rul_r.towards @labels.b, @serif
     rul_rs = outline.drawTouchingCircle rul_rr, rul_r, rul_l
 
-    temp = rul_l.towards (new Point rul_l.x + a.x - d.x, rul_l.y + a.y - d.y), narrow
-    rul_ll = intersect ll_tr, ll_br, temp, (new Point temp.x + b.x - c.x, temp.y + b.y - c.y)
-    rul_rl = intersect a,b,temp, rul_ll
+    temp = rul_l.towards (new Point rul_l.x + @labels.a.x - @labels.d.x, rul_l.y + @labels.a.y - @labels.d.y), @narrow
+    rul_ll = intersect ll_tr, ll_br, temp, (new Point temp.x + @labels.b.x - @labels.c.x, temp.y + @labels.b.y - @labels.c.y)
+    rul_rl = intersect @labels.a, @labels.b, temp, rul_ll
     outline.drawLine rul_ll, rul_rl
-    rul_rll = rul_rl.towards a, serif 
+    rul_rll = rul_rl.towards @labels.a, @serif 
     rul_ls = outline.drawTouchingCircle rul_ll, rul_rl, rul_rll
 
-    rll_lr = intersect c, d, rul_ll, (new Point rul_ll.x + d.x - a.x, rul_ll.y + d.y - a.y)
+    rll_lr = intersect @labels.c, @labels.d, rul_ll, (new Point rul_ll.x + @labels.d.x - @labels.a.x, rul_ll.y + @labels.d.y - @labels.a.y)
     rll_ll = intersect rul_l, rul_r, rul_ll, rll_lr
     outline.drawLine rll_lr, rll_ll
 
-    rll_lt = outline.drawTouchingCircle d, rll_lr, rll_ll
-    named_points.g = rll_lt.center
+    rll_lt = outline.drawTouchingCircle @labels.d, rll_lr, rll_ll
+    @labels.g = rll_lt.center
 
-    rll_ul = rll_ll.towards rul_r, wide
-    rll_ur = intersect c, d, rll_ul, (new Point rll_ul.x + d.x - a.x, rll_ul.y + d.y - a.y)
+    rll_ul = rll_ll.towards rul_r, @wide
+    rll_ur = intersect @labels.c, @labels.d, rll_ul, (new Point rll_ul.x + @labels.d.x - @labels.a.x, rll_ul.y + @labels.d.y - @labels.a.y)
     outline.drawLine rll_ur, rll_ul
 
-    rll_ut = outline.drawTouchingCircle rll_ul, rll_ur, d
-    named_points.h = rll_ut.center
+    rll_ut = outline.drawTouchingCircle rll_ul, rll_ur, @labels.d
+    @labels.h = rll_ut.center
 
     render = new FillShape sys.ctx
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc lls, true
     render.addArc uls, true
     render.addArc urs, true
@@ -1399,300 +1291,248 @@ GlyphFunctions =
     render.addArc lrs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawM: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    dab = a.distance b
-    f = named_points.f = a.towards b, dab / 6
-    g = named_points.g = b.towards a, dab / 6
+    dab = @labels.a.distance @labels.b
+    @labels.f = @labels.a.towards @labels.b, dab / 6
+    @labels.g = @labels.b.towards @labels.a, dab / 6
 
-    ll_tl = f.towards a, narrow
-    outline.drawLine ll_tl, c
-    ll_br = c.towards d, narrow
-    outline.drawLine f, ll_br
-    ll_bll = c.towards d, -serif
-    ll_brr = ll_br.towards d, serif
-    ll_ls = outline.drawTouchingCircle ll_bll, c, ll_tl
-    ll_rs = outline.drawTouchingCircle f, ll_br, ll_brr
-    ll_ts = outline.drawTouchingCircle c, ll_tl, (a.towards b, -narrow)
+    ll_tl = @labels.f.towards @labels.a, @narrow
+    outline.drawLine ll_tl, @labels.c
+    ll_br = @labels.c.towards @labels.d, @narrow
+    outline.drawLine @labels.f, ll_br
+    ll_bll = @labels.c.towards @labels.d, -@serif
+    ll_brr = ll_br.towards @labels.d, @serif
+    ll_ls = outline.drawTouchingCircle ll_bll, @labels.c, ll_tl
+    ll_rs = outline.drawTouchingCircle @labels.f, ll_br, ll_brr
+    ll_ts = outline.drawTouchingCircle @labels.c, ll_tl, (@labels.a.towards @labels.b, -@narrow)
 
-    rl_tr = g.towards b, narrow
-    outline.drawLine rl_tr, d
-    rl_tl = rl_tr.towards a, wide
-    rl_bl = d.towards c, wide
+    rl_tr = @labels.g.towards @labels.b, @narrow
+    outline.drawLine rl_tr, @labels.d
+    rl_tl = rl_tr.towards @labels.a, @wide
+    rl_bl = @labels.d.towards @labels.c, @wide
     outline.drawLine rl_tl, rl_bl
-    rl_bll = rl_bl.towards c, serif
+    rl_bll = rl_bl.towards @labels.c, @serif
     rl_ls = outline.drawTouchingCircle rl_bll, rl_bl, rl_tl
-    rl_brr = d.towards c, -serif
-    rl_rs = outline.drawTouchingCircle rl_tr, d, rl_brr
-    rl_ts = outline.drawTouchingCircle (b.towards a, narrow), rl_tr, d
+    rl_brr = @labels.d.towards @labels.c, -@serif
+    rl_rs = outline.drawTouchingCircle rl_tr, @labels.d, rl_brr
+    rl_ts = outline.drawTouchingCircle (@labels.b.towards @labels.a, @narrow), rl_tr, @labels.d
 
-    e = named_points.e = midPoint c, d # ll_br, rl_bl
+    @labels.e = midPoint @labels.c, @labels.d # ll_br, rl_bl
 
-    ml_lt = f.towards a, wide
-    outline.drawLine ml_lt, e
-    ml_rb = e.towards d, wide
-    outline.drawLine f, ml_rb
+    ml_lt = @labels.f.towards @labels.a, @wide
+    outline.drawLine ml_lt, @labels.e
+    ml_rb = @labels.e.towards @labels.d, @wide
+    outline.drawLine @labels.f, ml_rb
 
-    mr_lb = e.towards c, narrow
-    outline.drawLine g, mr_lb
-    mr_rt = g.towards b, narrow
-    outline.drawLine mr_rt, e
+    mr_lb = @labels.e.towards @labels.c, @narrow
+    outline.drawLine @labels.g, mr_lb
+    mr_rt = @labels.g.towards @labels.b, @narrow
+    outline.drawLine mr_rt, @labels.e
 
     render = new FillShape sys.ctx
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc ll_ls, true
     render.addArc ll_ts, true
-    render.lineTo f
-    render.lineTo (intersect f, ml_rb, mr_lb, g)
-    render.lineTo g
+    render.lineTo @labels.f
+    render.lineTo (intersect @labels.f, ml_rb, mr_lb, @labels.g)
+    render.lineTo @labels.g
     render.addArc rl_ts, true
     render.addArc rl_rs, true
     render.addArc rl_ls, true
-    render.lineTo (intersect rl_bl, rl_tl, e, mr_rt)
-    render.lineTo e
-    render.lineTo (intersect e, ml_lt, f, ll_br)
+    render.lineTo (intersect rl_bl, rl_tl, @labels.e, mr_rt)
+    render.lineTo @labels.e
+    render.lineTo (intersect @labels.e, ml_lt, @labels.f, ll_br)
     render.addArc ll_rs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawN: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    ll_bl = c.towards d, serif
-    ll_br = ll_bl.towards d, narrow
-    ll_brr = ll_br.towards d, serif
-    ll_tl = a.towards b, serif
-    ll_tr = ll_tl.towards b, narrow
+    ll_bl = @labels.c.towards @labels.d, @serif
+    ll_br = ll_bl.towards @labels.d, @narrow
+    ll_brr = ll_br.towards @labels.d, @serif
+    ll_tl = @labels.a.towards @labels.b, @serif
+    ll_tr = ll_tl.towards @labels.b, @narrow
 
     outline.drawLine ll_tl, ll_bl
     outline.drawLine ll_tr, ll_br
 
-    ll_ls = outline.drawTouchingCircle c, ll_bl, ll_tl
-    ll_ts = outline.drawTouchingCircle ll_bl, ll_tl, (a.towards b, -serif / (Math.sqrt 2))
+    ll_ls = outline.drawTouchingCircle @labels.c, ll_bl, ll_tl
+    ll_ts = outline.drawTouchingCircle ll_bl, ll_tl, (@labels.a.towards @labels.b, -@serif / (Math.sqrt 2))
     ll_rs = outline.drawTouchingCircle ll_tr, ll_br, ll_brr
 
-    e = named_points.e = d.towards c, serif
-    outline.drawLine a, e
-    outline.drawLine ll_tr, d
-    rl_bl = e.towards c, narrow
-    rl_tr = b.towards a, serif
-    rl_tl = rl_tr.towards a, narrow
-    rl_tll = rl_tl.towards a, serif
+    @labels.e = @labels.d.towards @labels.c, @serif
+    outline.drawLine @labels.a, @labels.e
+    outline.drawLine ll_tr, @labels.d
+    rl_bl = @labels.e.towards @labels.c, @narrow
+    rl_tr = @labels.b.towards @labels.a, @serif
+    rl_tl = rl_tr.towards @labels.a, @narrow
+    rl_tll = rl_tl.towards @labels.a, @serif
 
     outline.drawLine rl_tl, rl_bl
-    outline.drawLine rl_tr, e
+    outline.drawLine rl_tr, @labels.e
 
     rl_ls = outline.drawTouchingCircle rl_bl, rl_tl, rl_tll
-    rl_rs = outline.drawTouchingCircle b, rl_tr, e
+    rl_rs = outline.drawTouchingCircle @labels.b, rl_tr, @labels.e
 
     render = new FillShape sys.ctx
-    render.moveTo c
+    render.moveTo @labels.c
     render.addArc ll_ls, true
     render.addArc ll_ts, true
     render.lineTo ll_tr
-    render.lineTo (intersect ll_tr, d, rl_bl, rl_tl)
+    render.lineTo (intersect ll_tr, @labels.d, rl_bl, rl_tl)
     render.addArc rl_ls, true
     render.addArc rl_rs, true
-    render.lineTo e
-    render.lineTo (intersect e, a, ll_tr, ll_br)
+    render.lineTo @labels.e
+    render.lineTo (intersect @labels.e, @labels.a, ll_tr, ll_br)
     render.addArc ll_rs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawO: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    outline.drawLine c, b
+    outline.drawLine @labels.c, @labels.b
 
-    e = named_points.e = midPoint c, b
-    f = named_points.f = e.towards c, wide / 2
-    g = named_points.g = e.towards b, wide / 2
+    @labels.e = midPoint @labels.c, @labels.b
+    @labels.f = @labels.e.towards @labels.c, @wide / 2
+    @labels.g = @labels.e.towards @labels.b, @wide / 2
 
-    ol = new Point c.x, f.y
-    ob = new Point f.x, c.y
-    _or = new Point b.x, g.y
-    ot = new Point g.x, b.y
+    ol = new Point @labels.c.x, @labels.f.y
+    ob = new Point @labels.f.x, @labels.c.y
+    _or = new Point @labels.b.x, @labels.g.y
+    ot = new Point @labels.g.x, @labels.b.y
 
-    radius = f.distance ol
+    radius = @labels.f.distance ol
 
-    outline.drawCircle f, ob
-    outline.drawCircle g, ot
+    outline.drawCircle @labels.f, ob
+    outline.drawCircle @labels.g, ot
 
-    fgr = new Point f.y, g.x
+    fgr = new Point @labels.f.y, @labels.g.x
     outline.drawCircle fgr, ot
 
-    fgl = new Point f.x, g.y
+    fgl = new Point @labels.f.x, @labels.g.y
     outline.drawCircle fgl, ob
 
-    il = new Point g.x - radius, g.y
-    it = new Point f.x, f.y - radius
-    ib = new Point g.x, g.y + radius
-    ir = new Point f.x + radius, f.y
+    il = new Point @labels.g.x - radius, @labels.g.y
+    it = new Point @labels.f.x, @labels.f.y - radius
+    ib = new Point @labels.g.x, @labels.g.y + radius
+    ir = new Point @labels.f.x + radius, @labels.f.y
 
     outline.drawCircle fgl, il
     outline.drawCircle fgr, ir
 
     if variant == 'q'
-      outline.drawLine a, d
-      tailRadius = c.distance d
-      outline.drawLine d, (d.towards c, -tailRadius)
-      h = named_points.h = new Point (d.towards c, -3 * tailRadius / 4).x, d.y + 0.01
+      outline.drawLine @labels.a, @labels.d
+      tailRadius = @labels.c.distance @labels.d
+      outline.drawLine @labels.d, (@labels.d.towards @labels.c, -tailRadius)
+      @labels.h = new Point (@labels.d.towards @labels.c, -3 * tailRadius / 4).x, @labels.d.y + 0.01
 
-      utc = (intersectCircles d, tailRadius, h, tailRadius).left
-      outline.drawLine h, utc
-      outline.drawLine d, utc
-      outline.drawCircle utc, d
+      utc = (intersectCircles @labels.d, tailRadius, @labels.h, tailRadius).left
+      outline.drawLine @labels.h, utc
+      outline.drawLine @labels.d, utc
+      outline.drawCircle utc, @labels.d
 
       llor = fgl.distance _or
       utci = (intersectCircles utc, tailRadius, fgl, llor).left
-      outline.drawCircle utci, (new Point utci.x, utci.y + wide)
-      ltci = (intersectCircles utci, wide, fgl, llor).left
-      ltc = (intersectCircles ltci, tailRadius, h, tailRadius).left
+      outline.drawCircle utci, (new Point utci.x, utci.y + @wide)
+      ltci = (intersectCircles utci, @wide, fgl, llor).left
+      ltc = (intersectCircles ltci, tailRadius, @labels.h, tailRadius).left
       outline.drawLine ltci, ltc
-      outline.drawLine h, ltc
-      outline.drawCircle ltc, h
+      outline.drawLine @labels.h, ltc
+      outline.drawCircle ltc, @labels.h
 
     render = new FillShape sys.ctx
 
     render.moveTo ob
-    render.addArc {from:ob, to:ol, center:f}, false
-    render.addArc {from:ol, to:ot, center:fgr}, false
-    render.addArc {from:ot, to:_or, center:g}, false
+    render.addArc {from: ob, to: ol, center: @labels.f}, false
+    render.addArc {from: ol, to: ot, center: fgr}, false
+    render.addArc {from: ot, to: _or, center: @labels.g}, false
     if variant != 'q'
-      render.addArc({from:_or, to:ob, center:fgl}, false)
+      render.addArc({from: _or, to: ob, center: fgl}, false)
     else
-      render.addArc {from:_or, to:utci, center:fgl}, false
-      render.addArc {from:utci, to:h, center:utc}, true
-      render.addArc {from:h, to:ltci, center:ltc}, false
-      render.addArc {from:ltci, to:ob, center:fgl}, false
+      render.addArc {from: _or, to: utci, center: fgl}, false
+      render.addArc {from: utci, to: @labels.h, center: utc}, true
+      render.addArc {from: @labels.h, to: ltci, center: ltc}, false
+      render.addArc {from: ltci, to: ob, center: fgl}, false
 
     render.moveTo ib
-    render.addArc {from:ib, to:ir, center: fgr}, true
-    render.addArc {from:ir, to:it, center: f}, true
-    render.addArc {from:it, to:il, center: fgl}, true
-    render.addArc {from:il, to:ib, center: g}, true
+    render.addArc {from: ib, to: ir, center: fgr}, true
+    render.addArc {from: ir, to: it, center: @labels.f}, true
+    render.addArc {from: it, to: il, center: fgl}, true
+    render.addArc {from: il, to: ib, center: @labels.g}, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawS: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine e, f
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = midPoint a, b
-    h = named_points.h = midPoint c, d
-    outline.drawLine g, h
+    @labels.g = midPoint @labels.a, @labels.b
+    @labels.h = midPoint @labels.c, @labels.d
+    outline.drawLine @labels.g, @labels.h
 
-    m = named_points.m = intersect e, f, g, h
+    @labels.m = intersect @labels.e, @labels.f, @labels.g, @labels.h
 
-    i = named_points.i = g.towards h, narrow
-    k = named_points.k = h.towards g, narrow
+    @labels.i = @labels.g.towards @labels.h, @narrow
+    @labels.k = @labels.h.towards @labels.g, @narrow
 
-    l = named_points.l = m.towards h, wide / 3
-    n = named_points.n = m.towards g, 2 * wide / 3
+    @labels.l = @labels.m.towards @labels.h, @wide / 3
+    @labels.n = @labels.m.towards @labels.g, 2 * @wide / 3
 
-    toc = midPoint g, l
-    outline.drawCircle toc, g
-    tic = midPoint i, n
-    outline.drawCircle tic, i
+    toc = midPoint @labels.g, @labels.l
+    outline.drawCircle toc, @labels.g
+    tic = midPoint @labels.i, @labels.n
+    outline.drawCircle tic, @labels.i
 
-    boc = midPoint n, h
-    outline.drawCircle boc, h
+    boc = midPoint @labels.n, @labels.h
+    outline.drawCircle boc, @labels.h
 
-    bic = midPoint l, k
-    outline.drawCircle bic, k
+    bic = midPoint @labels.l, @labels.k
+    outline.drawCircle bic, @labels.k
 
-    rtl = new Point tic.x + (tic.distance i), tic.y
-    outline.drawCircle rtl, (rtl.towards tic, 4 * wide / 3)
-    rtu = (intersectCircles rtl, 4 * wide / 3, toc, (toc.distance g)).left
+    rtl = new Point tic.x + (tic.distance @labels.i), tic.y
+    outline.drawCircle rtl, (rtl.towards tic, 4 * @wide / 3)
+    rtu = (intersectCircles rtl, 4 * @wide / 3, toc, (toc.distance @labels.g)).left
     outline.drawLine rtl, rtu
 
-    bir = bic.distance l
-    bor = boc.distance n
+    bir = bic.distance @labels.l
+    bor = boc.distance @labels.n
     ltx = boc.x - (bir + bor) / 2
     lt = vertCircle boc, bor, ltx
 
@@ -1709,47 +1549,34 @@ GlyphFunctions =
     render = new FillShape sys.ctx
 
     render.moveTo ltu
-    render.addArc {from:lti, to:l, center: bic}, true
-    render.addArc {from:l, to:rtu, center:toc}, false
-    render.addArc {from:rtl, to:n, center:tic}, true
-    render.addArc {from:n, to:lt.lower, center:boc}, false
+    render.addArc {from: lti, to: @labels.l, center: bic}, true
+    render.addArc {from: @labels.l, to: rtu, center: toc}, false
+    render.addArc {from: rtl, to: @labels.n, center: tic}, true
+    render.addArc {from: @labels.n, to: lt.lower, center: boc}, false
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawT: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    l_bl = (midPoint c, d).towards c, wide / 2
-    l_br = l_bl.towards d, wide
+    l_bl = (midPoint @labels.c, @labels.d).towards @labels.c, @wide / 2
+    l_br = l_bl.towards @labels.d, @wide
     if variant != 'j'
-      l_bll = l_bl.towards c, serif
-      l_brr = l_br.towards d, serif
+      l_bll = l_bl.towards @labels.c, @serif
+      l_brr = l_br.towards @labels.d, @serif
 
-    l_tl = (midPoint a, b).towards a, wide / 2
-    l_tr = l_tl.towards b, wide
+    l_tl = (midPoint @labels.a, @labels.b).towards @labels.a, @wide / 2
+    l_tr = l_tl.towards @labels.b, @wide
 
-    e = named_points.e = a.towards b, wide
-    f = named_points.f = b.towards a, wide
+    @labels.e = @labels.e = @labels.a.towards @labels.b, @wide
+    @labels.f = @labels.f = @labels.b.towards @labels.a, @wide
 
     outline.drawLine l_tl, l_bl
     outline.drawLine l_tr, l_br
@@ -1757,37 +1584,37 @@ GlyphFunctions =
       bls = outline.drawTouchingCircle l_bll, l_bl, l_tl
       brs = outline.drawTouchingCircle l_tr, l_br, l_brr
     else
-      lob = midPoint c, l_br
-      lor = lob.distance c
-      loc = new Point c.x + lor, c.y - lor
+      lob = midPoint @labels.c, l_br
+      lor = lob.distance @labels.c
+      loc = new Point @labels.c.x + lor, @labels.c.y - lor
       outline.drawCircle loc, lob
 
-      lilb = new Point e.x - narrow / 2, c.y
+      lilb = new Point @labels.e.x - @narrow / 2, @labels.c.y
       lib = midPoint lilb, l_bl
       lir = lib.distance l_bl
-      lic = new Point lib.x, c.y - lir - narrow
-      outline.drawCircle lic, (new Point lib.x, lib.y - narrow)
-      outline.drawLine e, (new Point e.x, c.y)
+      lic = new Point lib.x, @labels.c.y - lir - @narrow
+      outline.drawCircle lic, (new Point lib.x, lib.y - @narrow)
+      outline.drawLine @labels.e, (new Point @labels.e.x, @labels.c.y)
 
-      ltu = (vertCircle lic, lir, e.x).lower
-      ltl = (vertCircle loc, lor, e.x).lower
+      ltu = (vertCircle lic, lir, @labels.e.x).lower
+      ltl = (vertCircle loc, lor, @labels.e.x).lower
 
-    tl_l = a.towards c, narrow
-    tl_r = b.towards d, narrow
+    tl_l = @labels.a.towards @labels.c, @narrow
+    tl_r = @labels.b.towards @labels.d, @narrow
     outline.drawLine tl_l, tl_r
 
-    tl_ll = new Point e.x - 3 * narrow, e.y + 2 * narrow
-    tl_lu = new Point e.x + narrow, e.y - narrow
+    tl_ll = new Point @labels.e.x - 3 * @narrow, @labels.e.y + 2 * @narrow
+    tl_lu = new Point @labels.e.x + @narrow, @labels.e.y - @narrow
     outline.drawLine tl_ll, tl_lu
 
-    tl_rl = new Point f.x - 2 * narrow, e.y + 2 * narrow
-    tl_ru = new Point f.x + 2 * narrow, e.y - narrow
+    tl_rl = new Point @labels.f.x - 2 * @narrow, @labels.e.y + 2 * @narrow
+    tl_ru = new Point @labels.f.x + 2 * @narrow, @labels.e.y - @narrow
     outline.drawLine tl_rl, tl_ru
 
     tlls = outline.drawTouchingCircle tl_r, (intersect tl_l, tl_r, tl_ll, tl_lu), tl_ll
-    tlus = outline.drawTouchingCircle tl_lu, (intersect a, b, tl_ll, tl_lu), b
+    tlus = outline.drawTouchingCircle tl_lu, (intersect @labels.a, @labels.b, tl_ll, tl_lu), @labels.b
 
-    trus = outline.drawTouchingCircle a, (intersect a, b, tl_rl, tl_ru), tl_ru
+    trus = outline.drawTouchingCircle @labels.a, (intersect @labels.a, @labels.b, tl_rl, tl_ru), tl_ru
     trls = outline.drawTouchingCircle tl_rl, (intersect tl_l, tl_r, tl_rl, tl_ru), tl_l
 
     render = new FillShape sys.ctx
@@ -1797,7 +1624,7 @@ GlyphFunctions =
       render.addArc bls, true
     else
       render.moveTo ltl
-      render.addArc {from:ltu, to:(new Point l_bl.x, lic.y), center:lic}, true
+      render.addArc {from: ltu, to:(new Point l_bl.x, lic.y), center: lic}, true
 
     render.lineTo (intersect l_bl, l_tl, tl_l, tl_r)
     render.addArc tlls, true
@@ -1808,124 +1635,98 @@ GlyphFunctions =
     if variant != 'j'
       render.addArc brs, true
     else
-      render.addArc {from:(new Point l_br.x, loc.y), to:ltl, center:loc}, false
+      render.addArc {from:(new Point l_br.x, loc.y), to: ltl, center: loc}, false
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawU: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint c, d
-    f = named_points.f = a.towards b, serif
-    g = named_points.g = c.towards d, serif
-    outline.drawLine f, g
+    @labels.e = midPoint @labels.c, @labels.d
+    @labels.f = @labels.a.towards @labels.b, @serif
+    @labels.g = @labels.c.towards @labels.d, @serif
+    outline.drawLine @labels.f, @labels.g
 
-    h = named_points.h = b.towards a, serif
-    i = named_points.i = d.towards c, serif
-    outline.drawLine h, i
+    @labels.h = @labels.b.towards @labels.a, @serif
+    @labels.i = @labels.d.towards @labels.c, @serif
+    outline.drawLine @labels.h, @labels.i
 
-    ll_tr = f.towards b, wide
-    ll_trr = ll_tr.towards b, serif
-    ll_br = g.towards d, wide
+    ll_tr = @labels.f.towards @labels.b, @wide
+    ll_trr = ll_tr.towards @labels.b, @serif
+    ll_br = @labels.g.towards @labels.d, @wide
     outline.drawLine ll_tr, ll_br
-    tlls = outline.drawTouchingCircle g, f, a
+    tlls = outline.drawTouchingCircle @labels.g, @labels.f, @labels.a
     tlrs = outline.drawTouchingCircle ll_trr, ll_tr, ll_br
 
-    rl_tl = h.towards a, wide
-    rl_tll = rl_tl.towards a, serif
-    rl_bl = i.towards c, wide
+    rl_tl = @labels.h.towards @labels.a, @wide
+    rl_tll = rl_tl.towards @labels.a, @serif
+    rl_bl = @labels.i.towards @labels.c, @wide
     outline.drawLine rl_tl, rl_bl
-    rlls = outline.drawTouchingCircle rl_bl, rl_tl,rl_tll
-    rlrs = outline.drawTouchingCircle b, h, i
+    rlls = outline.drawTouchingCircle rl_bl, rl_tl, rl_tll
+    rlrs = outline.drawTouchingCircle @labels.b, @labels.h, @labels.i
 
-    lor = e.distance g
-    loc = new Point e.x, e.y - lor
-    outline.drawCircle loc, e
+    lor = @labels.e.distance @labels.g
+    loc = new Point @labels.e.x, @labels.e.y - lor
+    outline.drawCircle loc, @labels.e
 
-    lir = e.distance ll_br
-    lic = new Point e.x, e.y - lir - narrow
-    outline.drawCircle lic, (new Point e.x, e.y - narrow)
+    lir = @labels.e.distance ll_br
+    lic = new Point @labels.e.x, @labels.e.y - lir - @narrow
+    outline.drawCircle lic, (new Point @labels.e.x, @labels.e.y - @narrow)
 
     render = new FillShape sys.ctx
 
     render.moveTo tlls.from
     render.addArc tlls, true
     render.addArc tlrs, true
-    render.addArc {from:(new Point ll_br.x, lic.y), to:(new Point rl_bl.x, lic.y), center:lic}, true
+    render.addArc {from:(new Point ll_br.x, lic.y), to:(new Point rl_bl.x, lic.y), center: lic}, true
     render.addArc rlls, true
     render.addArc rlrs, true
-    render.addArc {from:(new Point h.x, loc.y), to:(new Point f.x, loc.y), center:loc}, false
+    render.addArc {from:(new Point @labels.h.x, loc.y), to:(new Point @labels.f.x, loc.y), center: loc}, false
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawV: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint c, d
-    f = named_points.f = a.towards b, serif
-    g = named_points.g = b.towards a, serif
+    @labels.e = midPoint @labels.c, @labels.d
+    @labels.f = @labels.a.towards @labels.b, @serif
+    @labels.g = @labels.b.towards @labels.a, @serif
 
-    ll_tr = f.towards b, wide
-    ll_trr = ll_tr.towards b, serif
-    ll_br = e.towards d, wide
+    ll_tr = @labels.f.towards @labels.b, @wide
+    ll_trr = ll_tr.towards @labels.b, @serif
+    ll_br = @labels.e.towards @labels.d, @wide
 
-    outline.drawLine f, e
+    outline.drawLine @labels.f, @labels.e
     outline.drawLine ll_tr, ll_br
-    llls = outline.drawTouchingCircle e, f, a
+    llls = outline.drawTouchingCircle @labels.e, @labels.f, @labels.a
     llrs = outline.drawTouchingCircle ll_trr, ll_tr, ll_br
 
-    rl_tl = g.towards a, narrow
-    rl_tll = rl_tl.towards a, serif
-    rl_bl = e.towards c, narrow
+    rl_tl = @labels.g.towards @labels.a, @narrow
+    rl_tll = rl_tl.towards @labels.a, @serif
+    rl_bl = @labels.e.towards @labels.c, @narrow
 
     outline.drawLine rl_tl, rl_bl
-    outline.drawLine g, e
+    outline.drawLine @labels.g, @labels.e
     rlls = outline.drawTouchingCircle rl_bl, rl_tl, rl_tll
-    rlrs = outline.drawTouchingCircle b, g, e
+    rlrs = outline.drawTouchingCircle @labels.b, @labels.g, @labels.e
 
     render = new FillShape sys.ctx
 
-    render.moveTo e
+    render.moveTo @labels.e
     render.addArc llls, true
     render.addArc llrs, true
     render.lineTo (intersect ll_tr, ll_br, rl_tl, rl_bl)
@@ -1933,196 +1734,157 @@ GlyphFunctions =
     render.addArc rlrs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawW: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, b
-    fg = midPoint c, d
-    f = named_points.f = midPoint c, fg
-    g = named_points.g = midPoint fg, d
+    @labels.e = midPoint @labels.a, @labels.b
+    fg = midPoint @labels.c, @labels.d
+    @labels.f = midPoint @labels.c, fg
+    @labels.g = midPoint fg, @labels.d
 
-    f_l = f.towards c, narrow
-    f_r = f.towards d, wide
+    f_l = @labels.f.towards @labels.c, @narrow
+    f_r = @labels.f.towards @labels.d, @wide
 
-    g_l = g.towards c, narrow
-    g_r = g.towards d, wide
+    g_l = @labels.g.towards @labels.c, @narrow
+    g_r = @labels.g.towards @labels.d, @wide
 
-    a_l = a.towards b, -serif
-    a_r = a.towards b, wide
-    a_rr = a_r.towards b, serif
+    a_l = @labels.a.towards @labels.b, -@serif
+    a_r = @labels.a.towards @labels.b, @wide
+    a_rr = a_r.towards @labels.b, @serif
 
-    outline.drawLine a, f
+    outline.drawLine @labels.a, @labels.f
     outline.drawLine a_r, f_r
 
-    e_l = e.towards a, wide
-    e_r = e.towards b, narrow
+    e_l = @labels.e.towards @labels.a, @wide
+    e_r = @labels.e.towards @labels.b, @narrow
 
-    outline.drawLine e, f_l
-    outline.drawLine e_r, f
-    als = outline.drawTouchingCircle f, a, a_l
+    outline.drawLine @labels.e, f_l
+    outline.drawLine e_r, @labels.f
+    als = outline.drawTouchingCircle @labels.f, @labels.a, a_l
     ars = outline.drawTouchingCircle a_rr, a_r, f_r
 
-    outline.drawLine e_l, g
-    outline.drawLine e, g_r
+    outline.drawLine e_l, @labels.g
+    outline.drawLine @labels.e, g_r
 
-    b_l = b.towards a, narrow
-    b_ll = b_l.towards a, serif
-    b_r = b.towards a, -serif
+    b_l = @labels.b.towards @labels.a, @narrow
+    b_ll = b_l.towards @labels.a, @serif
+    b_r = @labels.b.towards @labels.a, -@serif
 
     outline.drawLine b_l, g_l
-    outline.drawLine b, g
+    outline.drawLine @labels.b, @labels.g
     bls = outline.drawTouchingCircle g_l, b_l, b_ll
-    brs = outline.drawTouchingCircle b_r, b, g
+    brs = outline.drawTouchingCircle b_r, @labels.b, @labels.g
 
     render = new FillShape sys.ctx
 
-    render.moveTo f
+    render.moveTo @labels.f
     render.addArc als, true
     render.addArc ars, true
-    render.lineTo (intersect a_r, f_r, f_l, e)
-    render.lineTo e
-    render.lineTo (intersect e, g_r, g_l, b_l)
+    render.lineTo (intersect a_r, f_r, f_l, @labels.e)
+    render.lineTo @labels.e
+    render.lineTo (intersect @labels.e, g_r, g_l, b_l)
     render.addArc bls, true
     render.addArc brs, true
-    render.lineTo g
-    render.lineTo (intersect g, e_l, e_r, f)
+    render.lineTo @labels.g
+    render.lineTo (intersect @labels.g, e_l, e_r, @labels.f)
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawX: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    f = named_points.f = a.towards b, serif
-    g = named_points.g = c.towards d, serif
-    outline.drawLine f, g
+    @labels.f = @labels.a.towards @labels.b, @serif
+    @labels.g = @labels.c.towards @labels.d, @serif
+    outline.drawLine @labels.f, @labels.g
 
-    h = named_points.h = b.towards a, serif
-    i = named_points.i = d.towards c, serif
-    outline.drawLine h, i
+    @labels.h = @labels.b.towards @labels.a, @serif
+    @labels.i = @labels.d.towards @labels.c, @serif
+    outline.drawLine @labels.h, @labels.i
 
-    tl_r = f.towards b, wide
-    tl_rr = tl_r.towards b, serif
+    tl_r = @labels.f.towards @labels.b, @wide
+    tl_rr = tl_r.towards @labels.b, @serif
 
-    bl_r = g.towards d, narrow
-    bl_rr = bl_r.towards d, serif
+    bl_r = @labels.g.towards @labels.d, @narrow
+    bl_rr = bl_r.towards @labels.d, @serif
 
-    tr_l = h.towards a, narrow
-    tr_ll = tr_l.towards a, serif
+    tr_l = @labels.h.towards @labels.a, @narrow
+    tr_ll = tr_l.towards @labels.a, @serif
 
-    br_l = i.towards c, wide
-    br_ll = br_l.towards c, serif
+    br_l = @labels.i.towards @labels.c, @wide
+    br_ll = br_l.towards @labels.c, @serif
 
-    outline.drawLine f, br_l
-    outline.drawLine tl_r, i
+    outline.drawLine @labels.f, br_l
+    outline.drawLine tl_r, @labels.i
 
-    outline.drawLine tr_l, g
-    outline.drawLine h, bl_r
+    outline.drawLine tr_l, @labels.g
+    outline.drawLine @labels.h, bl_r
 
-    tlls = outline.drawTouchingCircle br_l, f, a
-    tlrs = outline.drawTouchingCircle tl_rr, tl_r, i
+    tlls = outline.drawTouchingCircle br_l, @labels.f, @labels.a
+    tlrs = outline.drawTouchingCircle tl_rr, tl_r, @labels.i
 
-    trls = outline.drawTouchingCircle g, tr_l, tr_ll
-    trrs = outline.drawTouchingCircle b, h, bl_r
+    trls = outline.drawTouchingCircle @labels.g, tr_l, tr_ll
+    trrs = outline.drawTouchingCircle @labels.b, @labels.h, bl_r
 
-    blls = outline.drawTouchingCircle c, g, tr_l
-    blrs = outline.drawTouchingCircle h, bl_r, bl_rr
+    blls = outline.drawTouchingCircle @labels.c, @labels.g, tr_l
+    blrs = outline.drawTouchingCircle @labels.h, bl_r, bl_rr
 
-    brrs = outline.drawTouchingCircle tl_r, i, d
-    brls = outline.drawTouchingCircle br_ll, br_l, f
+    brrs = outline.drawTouchingCircle tl_r, @labels.i, @labels.d
+    brls = outline.drawTouchingCircle br_ll, br_l, @labels.f
 
     render = new FillShape sys.ctx
 
-    render.moveTo g
+    render.moveTo @labels.g
     render.addArc blls, true
-    render.lineTo (intersect g, tr_l, f, br_l)
+    render.lineTo (intersect @labels.g, tr_l, @labels.f, br_l)
     render.addArc tlls, true
     render.addArc tlrs, true
-    render.lineTo (intersect tl_r, i, g, tr_l)
+    render.lineTo (intersect tl_r, @labels.i, @labels.g, tr_l)
     render.addArc trls, true
     render.addArc trrs, true
-    render.lineTo (intersect h, bl_r, i, tl_r)
+    render.lineTo (intersect @labels.h, bl_r, @labels.i, tl_r)
     render.addArc brrs, true
     render.addArc brls, true
-    render.lineTo (intersect br_l, f, h, bl_r)
+    render.lineTo (intersect br_l, @labels.f, @labels.h, bl_r)
     render.addArc blrs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawY: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = midPoint a, c
-    f = named_points.f = midPoint b, d
-    outline.drawLine e, f
+    @labels.e = midPoint @labels.a, @labels.c
+    @labels.f = midPoint @labels.b, @labels.d
+    outline.drawLine @labels.e, @labels.f
 
-    ll_bl = (midPoint c, d).towards c, wide / 2
-    ll_bll = ll_bl.towards c, serif
-    ll_br = ll_bl.towards d, wide
-    ll_brr = ll_br.towards d, serif
+    ll_bl = (midPoint @labels.c, @labels.d).towards @labels.c, @wide / 2
+    ll_bll = ll_bl.towards @labels.c, @serif
+    ll_br = ll_bl.towards @labels.d, @wide
+    ll_brr = ll_br.towards @labels.d, @serif
 
-    ll_tl = (midPoint e, f).towards e, wide / 2
-    ll_tr = ll_tl.towards f, wide
+    ll_tl = (midPoint @labels.e, @labels.f).towards @labels.e, @wide / 2
+    ll_tr = ll_tl.towards @labels.f, @wide
 
     outline.drawLine ll_tl, ll_bl
     outline.drawLine ll_tr, ll_br
@@ -2130,15 +1892,15 @@ GlyphFunctions =
     bls = outline.drawTouchingCircle ll_bll, ll_bl, ll_tl
     brs = outline.drawTouchingCircle ll_tr, ll_br, ll_brr
 
-    tlm = ll_tl.towards ll_tr, 2 * wide / 3
+    tlm = ll_tl.towards ll_tr, 2 * @wide / 3
 
-    tl_l = a.towards b, serif
-    tl_r = tl_l.towards b, 2 * wide / 3
-    tl_rr = tl_r.towards b, serif
+    tl_l = @labels.a.towards @labels.b, @serif
+    tl_r = tl_l.towards @labels.b, 2 * @wide / 3
+    tl_rr = tl_r.towards @labels.b, @serif
 
-    tr_r = b.towards a, serif
-    tr_l = tr_r.towards a, wide / 3
-    tr_ll = tr_l.towards a, serif
+    tr_r = @labels.b.towards @labels.a, @serif
+    tr_l = tr_r.towards @labels.a, @wide / 3
+    tr_ll = tr_l.towards @labels.a, @serif
 
     outline.drawLine tl_l, ll_tl
     outline.drawLine tl_r, tlm
@@ -2146,15 +1908,15 @@ GlyphFunctions =
     outline.drawLine tr_l, tlm
     outline.drawLine tr_r, ll_tr
 
-    tlls = outline.drawTouchingCircle ll_tl, tl_l, a
+    tlls = outline.drawTouchingCircle ll_tl, tl_l, @labels.a
     tlrs = outline.drawTouchingCircle tl_rr, tl_r, tlm
 
     trls = outline.drawTouchingCircle tlm, tr_l, tr_ll
-    trrs = outline.drawTouchingCircle b, tr_r, ll_tr
+    trrs = outline.drawTouchingCircle @labels.b, tr_r, ll_tr
 
     render = new FillShape sys.ctx
 
-    render.moveTo (midPoint c, d)
+    render.moveTo (midPoint @labels.c, @labels.d)
     render.addArc bls, true
     render.lineTo ll_tl
     render.addArc tlls, true
@@ -2166,105 +1928,103 @@ GlyphFunctions =
     render.addArc brs, true
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
   drawZ: (id, variant, proportions) ->
-    Util.initializeCanvas id
-
-    named_points = {}
-    prop = Util.initializeSquare named_points, proportions.aspect
-    wide = proportions.broad_stem * prop
-    serif = proportions.serif * prop
-    narrow = proportions.narrow_stem * wide
-
-    a = named_points.a
-    b = named_points.b
-    c = named_points.c
-    d = named_points.d
-
     outline = new OutlineDrawer sys.ctx
 
-    outline.drawLine a, b
-    outline.drawLine c, d
-    outline.drawLine a, c
-    outline.drawLine b, d
+    outline.drawLine @labels.a, @labels.b
+    outline.drawLine @labels.c, @labels.d
+    outline.drawLine @labels.a, @labels.c
+    outline.drawLine @labels.b, @labels.d
 
-    e = named_points.e = a.towards c, serif
-    f = named_points.f = a.towards b, serif
-    outline.drawLine e, f
+    @labels.e = @labels.a.towards @labels.c, @serif
+    @labels.f = @labels.a.towards @labels.b, @serif
+    outline.drawLine @labels.e, @labels.f
 
-    g = named_points.g = d.towards c, serif
-    h = named_points.h = d.towards b, serif
-    outline.drawLine g, h
+    @labels.g = @labels.d.towards @labels.c, @serif
+    @labels.h = @labels.d.towards @labels.b, @serif
+    outline.drawLine @labels.g, @labels.h
 
-    tl_l = a.towards c, narrow
-    tl_r = b.towards d, narrow
+    tl_l = @labels.a.towards @labels.c, @narrow
+    tl_r = @labels.b.towards @labels.d, @narrow
     outline.drawLine tl_l, tl_r
-    tls = outline.drawTouchingCircle tl_r, (intersect tl_l, tl_r, e, f), e
+    tls = outline.drawTouchingCircle tl_r, (intersect tl_l, tl_r, @labels.e, @labels.f), @labels.e
 
-    bl_l = c.towards a, narrow
-    bl_r = d.towards b, narrow
+    bl_l = @labels.c.towards @labels.a, @narrow
+    bl_r = @labels.d.towards @labels.b, @narrow
     outline.drawLine bl_l, bl_r
-    brs = outline.drawTouchingCircle bl_l, (intersect bl_l, bl_r, g, h), h
+    brs = outline.drawTouchingCircle bl_l, (intersect bl_l, bl_r, @labels.g, @labels.h), @labels.h
 
-    ml_br = c.towards d, wide * 1.25
-    ml_tl = b.towards a, wide * 1.25
+    ml_br = @labels.c.towards @labels.d, @wide * 1.25
+    ml_tl = @labels.b.towards @labels.a, @wide * 1.25
 
-    outline.drawLine ml_tl, c
-    outline.drawLine b, ml_br
+    outline.drawLine ml_tl, @labels.c
+    outline.drawLine @labels.b, ml_br
 
     render = new FillShape sys.ctx
 
-    render.moveTo c
-    render.lineTo (intersect c, ml_tl, tl_l, tl_r)
+    render.moveTo @labels.c
+    render.lineTo (intersect @labels.c, ml_tl, tl_l, tl_r)
     render.addArc tls, true
-    render.lineTo f
-    render.lineTo b
-    render.lineTo (intersect b, ml_br, bl_l, bl_r)
+    render.lineTo @labels.f
+    render.lineTo @labels.b
+    render.lineTo (intersect @labels.b, ml_br, bl_l, bl_r)
     render.addArc brs, true
-    render.lineTo g
+    render.lineTo @labels.g
 
     render.closeAndFill()
-    outline.labelPoints named_points
+    outline.labelPoints @labels
     return
 
-  makeFuncs: () ->
-    @funcs = 
-      a:@drawA
-      b:@drawB
-      c:@drawC
-      d:@drawD
-      e:@drawE
-      f:@drawE
-      g:@drawG
-      h:@drawH
-      i:@drawI
-      j:@drawT
-      k:@drawK
-      l:@drawE
-      m:@drawM
-      n:@drawN
-      o:@drawO
-      p:@drawB
-      q:@drawO
-      r:@drawB
-      s:@drawS
-      t:@drawT
-      u:@drawU
-      v:@drawV
-      w:@drawW
-      x:@drawX
-      y:@drawY
-      z:@drawZ
+  lookupGlyphFunction: (letter) ->
+    switch letter
+      when 'a' then 'drawA'
+      when 'b' then 'drawB'
+      when 'c' then 'drawC'
+      when 'd' then 'drawD'
+      when 'e' then 'drawE'
+      when 'f' then 'drawE'
+      when 'g' then 'drawG'
+      when 'h' then 'drawH'
+      when 'i' then 'drawI'
+      when 'j' then 'drawT'
+      when 'k' then 'drawK'
+      when 'l' then 'drawE'
+      when 'm' then 'drawM'
+      when 'n' then 'drawN'
+      when 'o' then 'drawO'
+      when 'p' then 'drawB'
+      when 'q' then 'drawO'
+      when 'r' then 'drawB'
+      when 's' then 'drawS'
+      when 't' then 'drawT'
+      when 'u' then 'drawU'
+      when 'v' then 'drawV'
+      when 'w' then 'drawW'
+      when 'x' then 'drawX'
+      when 'y' then 'drawY'
+      when 'z' then 'drawZ'
+      else undefined
+
+  getGlyphFunction: (letter) ->
+    t = this
+    fname = @lookupGlyphFunction letter
+    if fname != undefined
+      return (id, variant, prop) =>
+        @initializeGlyph id, prop
+        @[fname] id, variant, prop
+    else
+      return fname
 
   drawLetter: (id, letter, proportions) ->
     letter = letter.toLowerCase()
 
-    f = @funcs[letter]
+    f = @getGlyphFunction letter
     if f != undefined
-      try f id, letter, proportions
-      catch e then console.log 'Exception', e, 'drawing', letter
+      f id, letter, proportions
+      # catch e then console.log 'Exception', e, 'drawing', letter
     else
       console.log 'Cannot find rendering functions for', letter
     return
@@ -2285,7 +2045,7 @@ proportions = {
 
 getLetterShape = (letter, proportions) ->
     letter = letter.toLowerCase()
-    f = GlyphFunctions.funcs[letter]
+    f = GlyphFunctions.getGlyphFunction letter
 
     if f != undefined
       oldOutline = sys.showOutlines
@@ -2328,7 +2088,7 @@ drawProofs = () ->
 drawSampleText = () ->
     text = (document.getElementById 'sampleText').value
     offset = 0
-    kernOffset = [0,0,0,0,0]
+    kernOffset = [0, 0, 0, 0, 0]
 
     for i in [0...text.length]
       letter = text[i]
@@ -2384,8 +2144,6 @@ bindValueToText = (from, to) ->
   onEvent from, 'input', () -> target.innerHTML = source.value
 
 onload = () ->
-  GlyphFunctions.makeFuncs()
-
   changeProportions()
   drawProofs()
   drawSampleText()

@@ -565,71 +565,70 @@
   };
 
   GlyphFunctions = {
-    drawA: function(id, variant, proportions) {
-      var a, b, c, d, dx, dy, e, eleft, eright, ert, esl, f, g, gdown, h, hdown, i, iright, isl, isr, k, kleft, ksl, ksr, named_points, narrow, outline, prop, render, serif, tcc, tcct, wide;
+    initializeGlyph: function(id, proportions) {
+      var prop;
       Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
+      this.labels = {};
+      prop = Util.initializeSquare(this.labels, proportions.aspect);
+      this.wide = proportions.broad_stem * prop;
+      this.serif = proportions.serif * prop;
+      this.narrow = proportions.narrow_stem * this.wide;
+    },
+    drawA: function(id, variant, proportions) {
+      var dx, dy, eleft, eright, ert, esl, gdown, hdown, iright, isl, isr, kleft, ksl, ksr, outline, render, tcc, tcct;
       if (variant !== 'b' && variant !== 'c') {
         variant = 'a';
       }
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, b);
-      f = named_points.f = midPoint(c, d);
-      outline.drawLine(e, f);
-      g = named_points.g = midPoint(a, c);
-      h = named_points.h = midPoint(b, d);
-      outline.drawLine(g, h);
-      i = named_points.i = c.towards(d, serif);
-      k = named_points.k = d.towards(c, serif);
-      eleft = e.towards(a, narrow);
-      eright = eleft.towards(b, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.b);
+      this.labels.f = midPoint(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = midPoint(this.labels.a, this.labels.c);
+      this.labels.h = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.g, this.labels.h);
+      this.labels.i = this.labels.c.towards(this.labels.d, this.serif);
+      this.labels.k = this.labels.d.towards(this.labels.c, this.serif);
+      eleft = this.labels.e.towards(this.labels.a, this.narrow);
+      eright = eleft.towards(this.labels.b, this.wide);
       if (variant === 'b') {
-        eleft = e.towards(a, wide);
-        eright = e.towards(b, narrow);
+        eleft = this.labels.e.towards(this.labels.a, this.wide);
+        eright = this.labels.e.towards(this.labels.b, this.narrow);
       }
       if (variant === 'a') {
-        outline.drawLine(i, eleft);
-        outline.drawLine(k, eright);
+        outline.drawLine(this.labels.i, eleft);
+        outline.drawLine(this.labels.k, eright);
       } else if (variant === 'b') {
-        outline.drawLine(i, e);
-        outline.drawLine(e, k);
+        outline.drawLine(this.labels.i, this.labels.e);
+        outline.drawLine(this.labels.e, this.labels.k);
       } else if (variant === 'c') {
-        outline.drawLine(i, eleft);
-        outline.drawLine(k, eright);
+        outline.drawLine(this.labels.i, eleft);
+        outline.drawLine(this.labels.k, eright);
       }
-      iright = i.towards(d, narrow);
-      kleft = k.towards(c, wide);
+      iright = this.labels.i.towards(this.labels.d, this.narrow);
+      kleft = this.labels.k.towards(this.labels.c, this.wide);
       if (variant === 'a') {
-        outline.drawLine(iright, e);
+        outline.drawLine(iright, this.labels.e);
         outline.drawLine(kleft, eleft);
       } else if (variant === 'b') {
         outline.drawLine(iright, eright);
         outline.drawLine(eleft, kleft);
       } else if (variant === 'c') {
-        outline.drawLine(iright, e);
+        outline.drawLine(iright, this.labels.e);
         outline.drawLine(kleft, eleft);
       }
-      gdown = g.towards(c, narrow);
-      hdown = h.towards(d, narrow);
+      gdown = this.labels.g.towards(this.labels.c, this.narrow);
+      hdown = this.labels.h.towards(this.labels.d, this.narrow);
       outline.drawLine(gdown, hdown);
-      isl = outline.drawTouchingCircle(c, i, eleft);
-      isr = outline.drawTouchingCircle(e, iright, iright.towards(d, serif));
-      ksr = outline.drawTouchingCircle(eright, k, d);
-      ksl = outline.drawTouchingCircle(kleft.towards(c, serif), kleft, eleft);
+      isl = outline.drawTouchingCircle(this.labels.c, this.labels.i, eleft);
+      isr = outline.drawTouchingCircle(this.labels.e, iright, iright.towards(this.labels.d, this.serif));
+      ksr = outline.drawTouchingCircle(eright, this.labels.k, this.labels.d);
+      ksl = outline.drawTouchingCircle(kleft.towards(this.labels.c, this.serif), kleft, eleft);
       if (variant === 'a') {
-        ert = eright.towards(k, serif / 2);
+        ert = eright.towards(this.labels.k, this.serif / 2);
         outline.drawLine(eright, ert);
         dx = ert.x - eright.x;
         dy = ert.y - eright.y;
@@ -638,23 +637,23 @@
         outline.drawCircle(tcc, eright);
         tcct = new Point(tcc.x - dx, tcc.y - dy);
         outline.drawLine(tcc, tcct);
-        outline.drawBezier(tcct, tcct.towards(a, serif / 2), eleft.towards(k, serif / 2), eleft);
+        outline.drawBezier(tcct, tcct.towards(this.labels.a, this.serif / 2), eleft.towards(this.labels.k, this.serif / 2), eleft);
       } else if (variant === 'c') {
-        esl = outline.drawTouchingCircle(i, eleft, eleft.towards(a, serif));
+        esl = outline.drawTouchingCircle(this.labels.i, eleft, eleft.towards(this.labels.a, this.serif));
       }
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(isl, true);
       if (variant === 'a') {
         render.lineTo(eleft);
-        render.addBezier(eleft.towards(k, serif / 2), tcct.towards(a, serif / 2), tcct);
+        render.addBezier(eleft.towards(this.labels.k, this.serif / 2), tcct.towards(this.labels.a, this.serif / 2), tcct);
         render.addArc({
           from: tcct,
           to: eright,
           center: tcc
         }, true);
       } else if (variant === 'b') {
-        render.lineTo(e);
+        render.lineTo(this.labels.e);
       } else if (variant === 'c') {
         render.lineTo(esl.from);
         render.addArc(esl, true);
@@ -666,115 +665,105 @@
       render.addArc(ksl, true);
       render.lineTo(intersect(kleft, eleft, gdown, hdown));
       if (variant === 'a' || variant === 'c') {
-        render.lineTo(intersect(iright, e, gdown, hdown));
+        render.lineTo(intersect(iright, this.labels.e, gdown, hdown));
       } else if (variant === 'b') {
         render.lineTo(intersect(iright, eright, gdown, hdown));
       }
       render.lineTo(isr.from);
       render.addArc(isr, true);
-      render.lineTo(c);
+      render.lineTo(this.labels.c);
       if (variant === 'a' || variant === 'c') {
-        render.moveTo(intersect(g, h, iright, e));
-        render.lineTo(intersect(kleft, eleft, g, h));
-        render.lineTo(intersect(iright, e, kleft, eleft));
+        render.moveTo(intersect(this.labels.g, this.labels.h, iright, this.labels.e));
+        render.lineTo(intersect(kleft, eleft, this.labels.g, this.labels.h));
+        render.lineTo(intersect(iright, this.labels.e, kleft, eleft));
       } else if (variant === 'b') {
-        render.moveTo(intersect(g, h, iright, eright));
-        render.lineTo(intersect(kleft, eleft, g, h));
+        render.moveTo(intersect(this.labels.g, this.labels.h, iright, eright));
+        render.lineTo(intersect(kleft, eleft, this.labels.g, this.labels.h));
         render.lineTo(intersect(iright, eright, kleft, eleft));
       }
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawB: function(id, variant, proportions) {
-      var a, b, bl_l, bl_r, bls, brs, c, d, e, f, g, h, i, icc, icc_l, icr, k, l, lic, lir, ll_bl, ll_br, ll_brr, ll_tl, ll_tr, loc, lor, lr_c, lr_lc, lr_tl, m, ml_l, ml_r, n, named_points, narrow, nb, nt, o, outline, p, pp, prop, q, r, render, s, serif, tir, tl, tl_l, tl_r, tls, toc, tor, tu, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bl_l, bl_r, bls, brs, icc, icc_l, icr, lic, lir, ll_bl, ll_br, ll_brr, ll_tl, ll_tr, loc, lor, lr_c, lr_lc, lr_tl, ml_l, ml_r, nb, nt, outline, pp, render, tir, tl, tl_l, tl_r, tls, toc, tor, tu;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      g = named_points.g = midPoint(a, e);
-      h = named_points.h = midPoint(b, f);
-      outline.drawLine(g, h);
-      ll_tl = a.towards(b, serif);
-      ll_tr = ll_tl.towards(b, wide);
-      ll_bl = c.towards(d, serif);
-      ll_br = ll_bl.towards(d, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = midPoint(this.labels.a, this.labels.e);
+      this.labels.h = midPoint(this.labels.b, this.labels.f);
+      outline.drawLine(this.labels.g, this.labels.h);
+      ll_tl = this.labels.a.towards(this.labels.b, this.serif);
+      ll_tr = ll_tl.towards(this.labels.b, this.wide);
+      ll_bl = this.labels.c.towards(this.labels.d, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.wide);
       outline.drawLine(ll_tl, ll_bl);
       outline.drawLine(ll_tr, ll_br);
-      tls = outline.drawTouchingCircle(ll_bl, ll_tl, a);
-      bls = outline.drawTouchingCircle(c, ll_bl, ll_tl);
-      i = named_points.i = ll_tr.towards(b, wide);
-      k = named_points.k = ll_br.towards(d, wide);
-      outline.drawLine(i, k);
-      l = named_points.l = intersect(g, h, i, k);
-      tl_l = a.towards(c, narrow);
-      tl_r = i.towards(k, narrow);
+      tls = outline.drawTouchingCircle(ll_bl, ll_tl, this.labels.a);
+      bls = outline.drawTouchingCircle(this.labels.c, ll_bl, ll_tl);
+      this.labels.i = ll_tr.towards(this.labels.b, this.wide);
+      this.labels.k = ll_br.towards(this.labels.d, this.wide);
+      outline.drawLine(this.labels.i, this.labels.k);
+      this.labels.l = intersect(this.labels.g, this.labels.h, this.labels.i, this.labels.k);
+      tl_l = this.labels.a.towards(this.labels.c, this.narrow);
+      tl_r = this.labels.i.towards(this.labels.k, this.narrow);
       outline.drawLine(tl_l, tl_r);
-      ml_l = e.towards(a, narrow);
-      ml_r = (intersect(e, f, i, k)).towards(i, narrow);
-      m = named_points.m = ml_r;
+      ml_l = this.labels.e.towards(this.labels.a, this.narrow);
+      ml_r = (intersect(this.labels.e, this.labels.f, this.labels.i, this.labels.k)).towards(this.labels.i, this.narrow);
+      this.labels.m = ml_r;
       outline.drawLine(ml_l, ml_r);
-      outline.drawCircle(l, ml_r);
-      tir = l.distance(ml_r);
-      n = named_points.n = l.towards(h, tir + wide);
-      tor = l.distance(i);
-      toc = n.towards(g, tor);
-      outline.drawCircle(toc, n);
+      outline.drawCircle(this.labels.l, ml_r);
+      tir = this.labels.l.distance(ml_r);
+      this.labels.n = this.labels.l.towards(this.labels.h, tir + this.wide);
+      tor = this.labels.l.distance(this.labels.i);
+      toc = this.labels.n.towards(this.labels.g, tor);
+      outline.drawCircle(toc, this.labels.n);
       if (variant === 'p') {
-        ll_brr = ll_br.towards(d, serif);
+        ll_brr = ll_br.towards(this.labels.d, this.serif);
         brs = outline.drawTouchingCircle(ll_tr, ll_br, ll_brr);
       } else if (variant === 'r') {
-        ll_brr = ll_br.towards(d, serif);
+        ll_brr = ll_br.towards(this.labels.d, this.serif);
         brs = outline.drawTouchingCircle(ll_tr, ll_br, ll_brr);
-        q = named_points.q = midPoint(a, b);
-        r = named_points.r = midPoint(c, d);
-        outline.drawLine(q, r);
-        s = named_points.s = (vertCircle(toc, tor, q.x)).lower;
-        lr_c = d.towards(c, serif);
-        outline.drawLine(s, lr_c);
-        lr_lc = lr_c.towards(c, wide);
-        lr_tl = intersect(e, f, s, lr_c).towards(e, wide);
+        this.labels.q = midPoint(this.labels.a, this.labels.b);
+        this.labels.r = midPoint(this.labels.c, this.labels.d);
+        outline.drawLine(this.labels.q, this.labels.r);
+        this.labels.s = (vertCircle(toc, tor, this.labels.q.x)).lower;
+        lr_c = this.labels.d.towards(this.labels.c, this.serif);
+        outline.drawLine(this.labels.s, lr_c);
+        lr_lc = lr_c.towards(this.labels.c, this.wide);
+        lr_tl = (intersect(this.labels.e, this.labels.f, this.labels.s, lr_c)).towards(this.labels.e, this.wide);
         outline.drawLine(lr_tl, lr_lc);
-        tu = outline.drawTouchingCircle(s, lr_c, d);
-        tl = outline.drawTouchingCircle(d, lr_lc, lr_tl);
+        tu = outline.drawTouchingCircle(this.labels.s, lr_c, this.labels.d);
+        tl = outline.drawTouchingCircle(this.labels.d, lr_lc, lr_tl);
       } else {
-        nt = new Point(n.x, a.y);
-        nb = new Point(n.x, c.y);
+        nt = new Point(this.labels.n.x, this.labels.a.y);
+        nb = new Point(this.labels.n.x, this.labels.c.y);
         outline.drawLine(nt, nb);
-        o = named_points.o = midPoint(ml_l, c);
-        p = named_points.p = new Point(d.x, o.y);
-        outline.drawLine(o, p);
-        bl_l = c.towards(a, narrow);
-        bl_r = nb.towards(nt, narrow);
+        this.labels.o = midPoint(ml_l, this.labels.c);
+        this.labels.p = new Point(this.labels.d.x, this.labels.o.y);
+        outline.drawLine(this.labels.o, this.labels.p);
+        bl_l = this.labels.c.towards(this.labels.a, this.narrow);
+        bl_r = nb.towards(nt, this.narrow);
         outline.drawLine(bl_l, bl_r);
-        q = named_points.q = intersect(i, k, bl_l, bl_r);
-        r = named_points.r = intersect(o, p, nt, nb);
-        lir = o.distance(e);
-        lic = r.towards(o, lir);
-        outline.drawCircle(lic, r);
-        s = named_points.s = r.towards(p, wide);
-        lor = o.distance(c);
-        loc = s.towards(o, lor);
-        outline.drawCircle(loc, s);
-        icr = wide * 2 / 3;
-        icc_l = bl_l.towards(bl_r, serif + wide + icr);
+        this.labels.q = intersect(this.labels.i, this.labels.k, bl_l, bl_r);
+        this.labels.r = intersect(this.labels.o, this.labels.p, nt, nb);
+        lir = this.labels.o.distance(this.labels.e);
+        lic = this.labels.r.towards(this.labels.o, lir);
+        outline.drawCircle(lic, this.labels.r);
+        this.labels.s = this.labels.r.towards(this.labels.p, this.wide);
+        lor = this.labels.o.distance(this.labels.c);
+        loc = this.labels.s.towards(this.labels.o, lor);
+        outline.drawCircle(loc, this.labels.s);
+        icr = this.wide * 2 / 3;
+        icc_l = bl_l.towards(bl_r, this.serif + this.wide + icr);
         icc = outline.drawTouchingCircle(ll_tr, intersect(bl_l, bl_r, ll_tr, ll_br), icc_l);
       }
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(bls, true);
       render.addArc(tls, true);
       if (variant === 'p') {
@@ -783,37 +772,37 @@
           to: new Point(toc.x, toc.y + tor),
           center: toc
         }, false);
-        render.lineTo(intersect(e, f, ll_tr, ll_br));
+        render.lineTo(intersect(this.labels.e, this.labels.f, ll_tr, ll_br));
         render.addArc(brs, true);
-        render.lineTo(c);
+        render.lineTo(this.labels.c);
         render.moveTo(intersect(tl_l, tl_r, ll_tr, ll_br));
         render.lineTo(intersect(ml_l, ml_r, ll_tr, ll_br));
         render.addArc({
           from: ml_r,
           to: tl_r,
-          center: l
+          center: this.labels.l
         }, true);
       } else if (variant === 'r') {
         render.addArc({
           from: new Point(toc.x, toc.y - tor),
-          to: s,
+          to: this.labels.s,
           center: toc
         }, false);
         render.addArc(tu, true);
         render.addArc(tl, false);
         render.lineTo(lr_tl);
-        render.lineTo(intersect(e, f, ll_tr, ll_br));
+        render.lineTo(intersect(this.labels.e, this.labels.f, ll_tr, ll_br));
         render.addArc(brs, true);
-        render.lineTo(c);
+        render.lineTo(this.labels.c);
         render.moveTo(intersect(tl_l, tl_r, ll_tr, ll_br));
         render.lineTo(intersect(ml_l, ml_r, ll_tr, ll_br));
         render.addArc({
           from: ml_r,
           to: tl_r,
-          center: l
+          center: this.labels.l
         }, true);
       } else {
-        pp = intersectCircles(toc, tor, loc, lor).left;
+        pp = (intersectCircles(toc, tor, loc, lor)).left;
         render.addArc({
           from: new Point(toc.x, toc.y - tor),
           to: pp,
@@ -824,16 +813,16 @@
           to: new Point(loc.x, loc.y + lor),
           center: loc
         }, false);
-        render.lineTo(c);
+        render.lineTo(this.labels.c);
         render.moveTo(intersect(tl_l, tl_r, ll_tr, ll_br));
         render.lineTo(intersect(ml_l, ml_r, ll_tr, ll_br));
         render.addArc({
           from: ml_r,
           to: tl_r,
-          center: l
+          center: this.labels.l
         }, true);
         render.lineTo(intersect(tl_l, tl_r, ll_tr, ll_br));
-        render.moveTo(intersect(e, f, ll_tr, ll_br));
+        render.moveTo(intersect(this.labels.e, this.labels.f, ll_tr, ll_br));
         render.addArc(icc, true);
         render.addArc({
           from: new Point(lic.x, lic.y + lir),
@@ -842,72 +831,62 @@
         }, true);
       }
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawC: function(id, variant, proportions) {
-      var a, b, c, d, e, f, g, h, i, ik, inner_radius, k, lbr, lo_in, ltr, named_points, narrow, outline, prop, radius, render, ro_in, serif, tl, tr, ubr, utr, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var ik, inner_radius, lbr, lo_in, ltr, outline, radius, render, ro_in, tl, tr, ubr, utr;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      g = named_points.g = b.towards(a, wide);
-      h = named_points.h = d.towards(c, wide);
-      outline.drawLine(g, h);
-      outline.drawLine(c, b);
-      i = named_points.i = midPoint(e, f);
-      k = named_points.k = i.towards(f, wide);
-      radius = i.distance(e);
-      outline.drawCircle(i, e);
-      outline.drawCircle(k, f.towards(e, -wide));
-      tr = f.towards(e, wide / 2);
-      tl = d.towards(c, wide / 2);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = this.labels.b.towards(this.labels.a, this.wide);
+      this.labels.h = this.labels.d.towards(this.labels.c, this.wide);
+      outline.drawLine(this.labels.g, this.labels.h);
+      outline.drawLine(this.labels.c, this.labels.b);
+      this.labels.i = midPoint(this.labels.e, this.labels.f);
+      this.labels.k = this.labels.i.towards(this.labels.f, this.wide);
+      radius = this.labels.i.distance(this.labels.e);
+      outline.drawCircle(this.labels.i, this.labels.e);
+      outline.drawCircle(this.labels.k, this.labels.f.towards(this.labels.e, -this.wide));
+      tr = this.labels.f.towards(this.labels.e, this.wide / 2);
+      tl = this.labels.d.towards(this.labels.c, this.wide / 2);
       outline.drawLine(tr, tl);
-      ik = midPoint(i, k);
-      inner_radius = radius - narrow;
-      outline.drawCircle(ik, ik.towards(e, inner_radius));
+      ik = midPoint(this.labels.i, this.labels.k);
+      inner_radius = radius - this.narrow;
+      outline.drawCircle(ik, ik.towards(this.labels.e, inner_radius));
       render = new FillShape(sys.ctx);
-      ubr = vertCircle(i, radius, tr.x).lower;
-      lbr = vertCircle(k, radius, tr.x).lower;
-      utr = vertCircle(k, radius, g.x).upper;
-      ltr = vertCircle(i, radius, g.x).upper;
+      ubr = (vertCircle(this.labels.i, radius, tr.x)).lower;
+      lbr = (vertCircle(this.labels.k, radius, tr.x)).lower;
+      utr = (vertCircle(this.labels.k, radius, this.labels.g.x)).upper;
+      ltr = (vertCircle(this.labels.i, radius, this.labels.g.x)).upper;
       render.moveTo(ubr);
       render.addArc({
         from: lbr,
-        to: new Point(k.x, c.y),
-        center: k
+        to: new Point(this.labels.k.x, this.labels.c.y),
+        center: this.labels.k
       }, false);
       render.addArc({
-        from: new Point(i.x, c.y),
-        to: new Point(i.x, a.y),
-        center: i
+        from: new Point(this.labels.i.x, this.labels.c.y),
+        to: new Point(this.labels.i.x, this.labels.a.y),
+        center: this.labels.i
       }, false);
       render.addArc({
-        from: new Point(k.x, a.y),
+        from: new Point(this.labels.k.x, this.labels.a.y),
         to: utr,
-        center: k
+        center: this.labels.k
       }, false);
       render.lineTo(ltr);
-      lo_in = intersectCircles(i, radius, ik, inner_radius);
+      lo_in = intersectCircles(this.labels.i, radius, ik, inner_radius);
       render.addArc({
         from: ltr,
         to: lo_in.left,
-        center: i
+        center: this.labels.i
       }, true);
-      ro_in = intersectCircles(k, radius, ik, inner_radius);
+      ro_in = intersectCircles(this.labels.k, radius, ik, inner_radius);
       render.addArc({
         from: lo_in.left,
         to: ro_in.right,
@@ -916,7 +895,7 @@
       render.addArc({
         from: ro_in.right,
         to: ro_in.left,
-        center: k
+        center: this.labels.k
       }, true);
       render.addArc({
         from: ro_in.left,
@@ -926,140 +905,120 @@
       render.addArc({
         from: lo_in.right,
         to: ubr,
-        center: i
+        center: this.labels.i
       }, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawD: function(id, variant, proportions) {
-      var a, b, bl_l, bl_r, c, d, e, f, g, h, i, innerRadius, isp, k, l, ll_bl, ll_br, ll_tl, ll_tr, lls, named_points, narrow, outline, prop, render, serif, tl_l, tl_r, tls, wide, _is;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bl_l, bl_r, innerRadius, isp, ll_bl, ll_br, ll_tl, ll_tr, lls, outline, render, tl_l, tl_r, tls, _is;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      g = named_points.g = midPoint(a, b);
-      h = named_points.h = midPoint(c, d);
-      outline.drawLine(g, h);
-      i = named_points.i = intersect(e, f, g, h);
-      ll_bl = c.towards(d, serif);
-      ll_br = ll_bl.towards(d, wide);
-      ll_tl = a.towards(b, serif);
-      ll_tr = ll_tl.towards(b, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = this.labels.g = midPoint(this.labels.a, this.labels.b);
+      this.labels.h = this.labels.h = midPoint(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.g, this.labels.h);
+      this.labels.i = this.labels.i = intersect(this.labels.e, this.labels.f, this.labels.g, this.labels.h);
+      ll_bl = this.labels.c.towards(this.labels.d, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.wide);
+      ll_tl = this.labels.a.towards(this.labels.b, this.serif);
+      ll_tr = ll_tl.towards(this.labels.b, this.wide);
       outline.drawLine(ll_bl, ll_tl);
       outline.drawLine(ll_br, ll_tr);
-      lls = outline.drawTouchingCircle(c, ll_bl, ll_tl);
-      tls = outline.drawTouchingCircle(ll_bl, ll_tl, a);
-      outline.drawCircle(i, f);
-      k = named_points.k = f.towards(e, wide);
-      tl_l = a.towards(c, narrow);
-      tl_r = g.towards(h, narrow);
+      lls = outline.drawTouchingCircle(this.labels.c, ll_bl, ll_tl);
+      tls = outline.drawTouchingCircle(ll_bl, ll_tl, this.labels.a);
+      outline.drawCircle(this.labels.i, this.labels.f);
+      this.labels.k = this.labels.k = this.labels.f.towards(this.labels.e, this.wide);
+      tl_l = this.labels.a.towards(this.labels.c, this.narrow);
+      tl_r = this.labels.g.towards(this.labels.h, this.narrow);
       outline.drawLine(tl_l, tl_r);
-      bl_l = c.towards(a, narrow);
-      bl_r = h.towards(g, narrow);
+      bl_l = this.labels.c.towards(this.labels.a, this.narrow);
+      bl_r = this.labels.h.towards(this.labels.g, this.narrow);
       outline.drawLine(bl_l, bl_r);
-      innerRadius = tl_l.distance(e);
-      l = named_points.l = k.towards(e, innerRadius);
-      outline.drawCircle(l, k);
-      isp = bl_l.towards(bl_r, serif + wide + serif);
+      innerRadius = tl_l.distance(this.labels.e);
+      this.labels.l = this.labels.l = this.labels.k.towards(this.labels.e, innerRadius);
+      outline.drawCircle(this.labels.l, this.labels.k);
+      isp = bl_l.towards(bl_r, this.serif + this.wide + this.serif);
       _is = outline.drawTouchingCircle(ll_tr, intersect(ll_tr, ll_br, bl_l, bl_r), isp);
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(lls, true);
       render.addArc(tls, true);
       render.addArc({
-        from: g,
-        to: h,
-        center: i
+        from: this.labels.g,
+        to: this.labels.h,
+        center: this.labels.i
       }, false);
-      render.lineTo(c);
+      render.lineTo(this.labels.c);
       render.moveTo(intersect(ll_tr, ll_br, tl_l, tl_r));
       render.addArc(_is, true);
       render.addArc({
-        to: new Point(l.x, tl_l.y),
-        from: new Point(l.x, bl_l.y),
-        center: l
+        to: new Point(this.labels.l.x, tl_l.y),
+        from: new Point(this.labels.l.x, bl_l.y),
+        center: this.labels.l
       }, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawE: function(id, variant, proportions) {
-      var a, b, bl_br, bl_l, bl_r, blls, blrs, bls, c, d, e, f, ll_bl, ll_br, ll_tl, ll_tr, ml_l, ml_lr, ml_r, ml_rl, ml_ru, mlls, mlus, named_points, narrow, outline, prop, render, serif, tl_l, tl_r, tl_tr, tl_trd, tlrs, tls, trs, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bl_br, bl_l, bl_r, blls, blrs, bls, ll_bl, ll_br, ll_tl, ll_tr, ml_l, ml_lr, ml_r, ml_rl, ml_ru, mlls, mlus, outline, render, tl_l, tl_r, tl_tr, tl_trd, tlrs, tls, trs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
       if (variant !== 'l') {
-        e = named_points.e = midPoint(a, c);
-        f = named_points.f = midPoint(b, d);
-        outline.drawLine(e, f);
+        this.labels.e = this.labels.e = midPoint(this.labels.a, this.labels.c);
+        this.labels.f = this.labels.f = midPoint(this.labels.b, this.labels.d);
+        outline.drawLine(this.labels.e, this.labels.f);
       }
-      ll_tl = a.towards(b, serif);
-      ll_tr = ll_tl.towards(b, wide);
-      ll_bl = c.towards(d, serif);
-      ll_br = ll_bl.towards(d, wide);
+      ll_tl = this.labels.a.towards(this.labels.b, this.serif);
+      ll_tr = ll_tl.towards(this.labels.b, this.wide);
+      ll_bl = this.labels.c.towards(this.labels.d, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.wide);
       outline.drawLine(ll_tl, ll_bl);
       outline.drawLine(ll_tr, ll_br);
-      tls = outline.drawTouchingCircle(ll_bl, ll_tl, a);
-      bls = outline.drawTouchingCircle(c, ll_bl, ll_tl);
+      tls = outline.drawTouchingCircle(ll_bl, ll_tl, this.labels.a);
+      bls = outline.drawTouchingCircle(this.labels.c, ll_bl, ll_tl);
       if (variant === 'l') {
-        trs = outline.drawTouchingCircle(ll_tr.towards(b, serif), ll_tr, ll_br);
+        trs = outline.drawTouchingCircle(ll_tr.towards(this.labels.b, this.serif), ll_tr, ll_br);
       }
-      tl_tr = a.towards(b, (6 - 1 / 3) * wide);
-      tl_trd = new Point(tl_tr.x, c.y);
+      tl_tr = this.labels.a.towards(this.labels.b, (6 - 1 / 3) * this.wide);
+      tl_trd = new Point(tl_tr.x, this.labels.c.y);
       outline.drawLine(tl_tr, tl_trd);
       if (variant !== 'l') {
-        tl_l = a.towards(c, narrow);
-        tl_r = tl_tr.towards(tl_trd, narrow);
+        tl_l = this.labels.a.towards(this.labels.c, this.narrow);
+        tl_r = tl_tr.towards(tl_trd, this.narrow);
         outline.drawLine(tl_l, tl_r);
-        tlrs = outline.drawTouchingCircle(tl_tr.towards(tl_trd, wide), tl_r, tl_l);
-        ml_l = e.towards(a, narrow);
-        ml_lr = e.towards(f, (5 - 1 / 3) * wide);
+        tlrs = outline.drawTouchingCircle(tl_tr.towards(tl_trd, this.wide), tl_r, tl_l);
+        ml_l = this.labels.e.towards(this.labels.a, this.narrow);
+        ml_lr = this.labels.e.towards(this.labels.f, (5 - 1 / 3) * this.wide);
         ml_r = new Point(ml_lr.x, ml_l.y);
         outline.drawLine(ml_l, ml_r);
-        ml_rl = ml_r.towards(ml_lr, wide + narrow / 2);
-        ml_ru = ml_rl.towards(ml_r, 2 * wide);
-        outline.drawLine(ml_ru, new Point(ml_r.x, c.y));
+        ml_rl = ml_r.towards(ml_lr, this.wide + this.narrow / 2);
+        ml_ru = ml_rl.towards(ml_r, 2 * this.wide);
+        outline.drawLine(ml_ru, new Point(ml_r.x, this.labels.c.y));
         mlus = outline.drawTouchingCircle(ml_l, ml_r, ml_ru);
-        mlls = outline.drawTouchingCircle(ml_rl, ml_lr, e);
+        mlls = outline.drawTouchingCircle(ml_rl, ml_lr, this.labels.e);
       }
       if (variant !== 'f') {
-        bl_l = c.towards(a, narrow);
-        bl_br = c.towards(d, (7 - 1 / 3) * wide);
+        bl_l = this.labels.c.towards(this.labels.a, this.narrow);
+        bl_br = this.labels.c.towards(this.labels.d, (7 - 1 / 3) * this.wide);
         bl_r = new Point(bl_br.x, bl_l.y);
         outline.drawLine(bl_l, bl_r);
-        blrs = outline.drawTouchingCircle(intersect(tl_tr, tl_trd, bl_l, bl_r), bl_r, b);
+        blrs = outline.drawTouchingCircle(intersect(tl_tr, tl_trd, bl_l, bl_r), bl_r, this.labels.b);
         outline.drawLine(blrs.to, bl_br);
-        blls = outline.drawTouchingCircle(ll_tr, intersect(ll_tr, ll_br, bl_l, bl_r), bl_l.towards(bl_r, serif + wide + (wide - narrow / 2)));
+        blls = outline.drawTouchingCircle(ll_tr, intersect(ll_tr, ll_br, bl_l, bl_r), bl_l.towards(bl_r, this.serif + this.wide + (this.wide - this.narrow / 2)));
       } else {
-        blls = outline.drawTouchingCircle(ll_tr, ll_br, ll_br.towards(d, serif));
+        blls = outline.drawTouchingCircle(ll_tr, ll_br, ll_br.towards(this.labels.d, this.serif));
       }
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(bls, true);
       render.addArc(tls, true);
       if (variant !== 'l') {
@@ -1069,7 +1028,7 @@
         render.lineTo(intersect(ll_tr, ll_br, ml_l, ml_r));
         render.addArc(mlus, true);
         render.addArc(mlls, true);
-        render.lineTo(intersect(ll_tr, ll_br, e, f));
+        render.lineTo(intersect(ll_tr, ll_br, this.labels.e, this.labels.f));
       } else {
         render.addArc(trs, true);
       }
@@ -1079,67 +1038,57 @@
         render.lineTo(bl_br);
       }
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawG: function(id, variant, proportions) {
-      var a, b, c, d, e, f, g, gk_v, h, i, icc, icl, icr, k, lo_in, lo_v, named_points, narrow, outerRadius, outline, prop, render, rl_ll, rl_tl, rli, rlls, rlrs, ro_in, ro_v, serif, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var gk_v, icc, icl, icr, lo_in, lo_v, outerRadius, outline, render, rl_ll, rl_tl, rli, rlls, rlrs, ro_in, ro_v;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      g = named_points.g = b.towards(a, wide);
-      h = named_points.h = d.towards(c, wide);
-      outline.drawLine(g, h);
-      outline.drawLine(b, c);
-      i = named_points.i = intersect(b, c, e, f);
-      k = named_points.k = i.towards(f, wide);
-      outline.drawCircle(i, e);
-      outline.drawCircle(k, e.towards(f, wide));
-      rl_ll = h.towards(c, wide);
-      rli = intersect(e, f, g, h);
-      rl_tl = rli.towards(e, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = this.labels.b.towards(this.labels.a, this.wide);
+      this.labels.h = this.labels.d.towards(this.labels.c, this.wide);
+      outline.drawLine(this.labels.g, this.labels.h);
+      outline.drawLine(this.labels.b, this.labels.c);
+      this.labels.i = intersect(this.labels.b, this.labels.c, this.labels.e, this.labels.f);
+      this.labels.k = this.labels.i.towards(this.labels.f, this.wide);
+      outline.drawCircle(this.labels.i, this.labels.e);
+      outline.drawCircle(this.labels.k, this.labels.e.towards(this.labels.f, this.wide));
+      rl_ll = this.labels.h.towards(this.labels.c, this.wide);
+      rli = intersect(this.labels.e, this.labels.f, this.labels.g, this.labels.h);
+      rl_tl = rli.towards(this.labels.e, this.wide);
       outline.drawLine(rl_ll, rl_tl);
-      rlls = outline.drawTouchingCircle(rl_ll, rl_tl, rl_tl.towards(e, serif));
-      rlrs = outline.drawTouchingCircle(f, rli, h);
-      icc = midPoint(i, k);
-      outerRadius = i.distance(e);
-      icr = outerRadius - narrow;
-      icl = icc.towards(e, icr);
+      rlls = outline.drawTouchingCircle(rl_ll, rl_tl, rl_tl.towards(this.labels.e, this.serif));
+      rlrs = outline.drawTouchingCircle(this.labels.f, rli, this.labels.h);
+      icc = midPoint(this.labels.i, this.labels.k);
+      outerRadius = this.labels.i.distance(this.labels.e);
+      icr = outerRadius - this.narrow;
+      icl = icc.towards(this.labels.e, icr);
       outline.drawCircle(icc, icl);
       render = new FillShape(sys.ctx);
-      gk_v = vertCircle(k, outerRadius, g.x);
+      gk_v = vertCircle(this.labels.k, outerRadius, this.labels.g.x);
       render.moveTo(gk_v.upper);
-      lo_in = intersectCircles(i, outerRadius, icc, icr);
-      ro_in = intersectCircles(k, outerRadius, icc, icr);
-      lo_v = vertCircle(i, outerRadius, i.x);
-      ro_v = vertCircle(k, outerRadius, k.x);
+      lo_in = intersectCircles(this.labels.i, outerRadius, icc, icr);
+      ro_in = intersectCircles(this.labels.k, outerRadius, icc, icr);
+      lo_v = vertCircle(this.labels.i, outerRadius, this.labels.i.x);
+      ro_v = vertCircle(this.labels.k, outerRadius, this.labels.k.x);
       render.addArc({
-        from: vertCircle(icc, icr, g.x).upper,
+        from: (vertCircle(icc, icr, this.labels.g.x)).upper,
         to: ro_in.right,
         center: icc
       }, true);
       render.addArc({
         from: ro_in.right,
         to: ro_in.left,
-        center: k
+        center: this.labels.k
       }, true);
       render.addArc({
         from: ro_in.left,
-        to: vertCircle(icc, icr, rl_ll.x).lower,
+        to: (vertCircle(icc, icr, rl_ll.x)).lower,
         center: icc
       }, true);
       render.addArc(rlls, true);
@@ -1147,70 +1096,60 @@
       render.addArc({
         from: gk_v.lower,
         to: ro_v.lower,
-        center: k
+        center: this.labels.k
       }, false);
       render.addArc({
         from: lo_v.lower,
         to: lo_v.upper,
-        center: i
+        center: this.labels.i
       }, false);
       render.addArc({
         from: ro_v.upper,
         to: gk_v.upper,
-        center: k
+        center: this.labels.k
       }, false);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawH: function(id, variant, proportions) {
-      var a, b, c, d, e, f, lbls, lbrs, ll_bl, ll_br, ll_brs, ll_tl, ll_tr, ll_trs, ltls, ltrs, ml_l, ml_r, named_points, narrow, outline, prop, rbls, rbrs, render, rl_bl, rl_bls, rl_br, rl_tl, rl_tls, rl_tr, rtls, rtrs, serif, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var lbls, lbrs, ll_bl, ll_br, ll_brs, ll_tl, ll_tr, ll_trs, ltls, ltrs, ml_l, ml_r, outline, rbls, rbrs, render, rl_bl, rl_bls, rl_br, rl_tl, rl_tls, rl_tr, rtls, rtrs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      ll_bl = c.towards(d, serif);
-      ll_br = ll_bl.towards(d, wide);
-      ll_brs = ll_br.towards(d, serif);
-      ll_tl = a.towards(b, serif);
-      ll_tr = ll_tl.towards(b, wide);
-      ll_trs = ll_tr.towards(b, serif);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      ll_bl = this.labels.c.towards(this.labels.d, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.wide);
+      ll_brs = ll_br.towards(this.labels.d, this.serif);
+      ll_tl = this.labels.a.towards(this.labels.b, this.serif);
+      ll_tr = ll_tl.towards(this.labels.b, this.wide);
+      ll_trs = ll_tr.towards(this.labels.b, this.serif);
       outline.drawLine(ll_bl, ll_tl);
       outline.drawLine(ll_br, ll_tr);
-      lbls = outline.drawTouchingCircle(c, ll_bl, ll_tl);
-      ltls = outline.drawTouchingCircle(ll_bl, ll_tl, a);
+      lbls = outline.drawTouchingCircle(this.labels.c, ll_bl, ll_tl);
+      ltls = outline.drawTouchingCircle(ll_bl, ll_tl, this.labels.a);
       ltrs = outline.drawTouchingCircle(ll_trs, ll_tr, ll_br);
       lbrs = outline.drawTouchingCircle(ll_tr, ll_br, ll_brs);
-      rl_br = d.towards(c, serif);
-      rl_bl = rl_br.towards(c, wide);
-      rl_bls = rl_bl.towards(c, serif);
-      rl_tr = b.towards(a, serif);
-      rl_tl = rl_tr.towards(a, wide);
-      rl_tls = rl_tl.towards(a, serif);
+      rl_br = this.labels.d.towards(this.labels.c, this.serif);
+      rl_bl = rl_br.towards(this.labels.c, this.wide);
+      rl_bls = rl_bl.towards(this.labels.c, this.serif);
+      rl_tr = this.labels.b.towards(this.labels.a, this.serif);
+      rl_tl = rl_tr.towards(this.labels.a, this.wide);
+      rl_tls = rl_tl.towards(this.labels.a, this.serif);
       outline.drawLine(rl_tr, rl_br);
       outline.drawLine(rl_tl, rl_bl);
       rbls = outline.drawTouchingCircle(rl_bls, rl_bl, rl_tl);
       rtls = outline.drawTouchingCircle(rl_bl, rl_tl, rl_tls);
-      rtrs = outline.drawTouchingCircle(b, rl_tr, rl_br);
-      rbrs = outline.drawTouchingCircle(rl_tr, rl_br, d);
-      ml_l = e.towards(a, narrow);
-      ml_r = f.towards(b, narrow);
+      rtrs = outline.drawTouchingCircle(this.labels.b, rl_tr, rl_br);
+      rbrs = outline.drawTouchingCircle(rl_tr, rl_br, this.labels.d);
+      ml_l = this.labels.e.towards(this.labels.a, this.narrow);
+      ml_r = this.labels.f.towards(this.labels.b, this.narrow);
       outline.drawLine(ml_l, ml_r);
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(lbls, true);
       render.addArc(ltls, true);
       render.addArc(ltrs, true);
@@ -1220,39 +1159,29 @@
       render.addArc(rtrs, true);
       render.addArc(rbrs, true);
       render.addArc(rbls, true);
-      render.lineTo(intersect(e, f, rl_tl, rl_bl));
-      render.lineTo(intersect(e, f, ll_tr, ll_br));
+      render.lineTo(intersect(this.labels.e, this.labels.f, rl_tl, rl_bl));
+      render.lineTo(intersect(this.labels.e, this.labels.f, ll_tr, ll_br));
       render.addArc(lbrs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawI: function(id, variant, proportions) {
-      var a, ab, b, bl, bll, bls, br, brr, brs, c, cd, d, named_points, narrow, outline, prop, render, serif, tl, tll, tls, tr, trr, trs, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var ab, bl, bll, bls, br, brr, brs, cd, outline, render, tl, tll, tls, tr, trr, trs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      ab = midPoint(a, b);
-      cd = midPoint(c, d);
-      bl = cd.towards(c, wide / 2);
-      bll = bl.towards(c, serif);
-      br = cd.towards(d, wide / 2);
-      brr = br.towards(d, serif);
-      tl = ab.towards(a, wide / 2);
-      tll = tl.towards(a, serif);
-      tr = ab.towards(b, wide / 2);
-      trr = tr.towards(b, serif);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      ab = midPoint(this.labels.a, this.labels.b);
+      cd = midPoint(this.labels.c, this.labels.d);
+      bl = cd.towards(this.labels.c, this.wide / 2);
+      bll = bl.towards(this.labels.c, this.serif);
+      br = cd.towards(this.labels.d, this.wide / 2);
+      brr = br.towards(this.labels.d, this.serif);
+      tl = ab.towards(this.labels.a, this.wide / 2);
+      tll = tl.towards(this.labels.a, this.serif);
+      tr = ab.towards(this.labels.b, this.wide / 2);
+      trr = tr.towards(this.labels.b, this.serif);
       outline.drawLine(tl, bl);
       outline.drawLine(tr, br);
       bls = outline.drawTouchingCircle(bll, bl, tl);
@@ -1266,63 +1195,53 @@
       render.addArc(trs, true);
       render.addArc(brs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawK: function(id, variant, proportions) {
-      var a, b, c, d, e, f, ll_bl, ll_br, ll_brr, ll_tl, ll_tr, ll_trr, lls, lrs, named_points, narrow, outline, prop, render, rll_ll, rll_lr, rll_lt, rll_ul, rll_ur, rll_ut, rul_l, rul_ll, rul_ls, rul_r, rul_rl, rul_rll, rul_rr, rul_rs, serif, temp, uls, urs, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var ll_bl, ll_br, ll_brr, ll_tl, ll_tr, ll_trr, lls, lrs, outline, render, rll_ll, rll_lr, rll_lt, rll_ul, rll_ur, rll_ut, rul_l, rul_ll, rul_ls, rul_r, rul_rl, rul_rll, rul_rr, rul_rs, temp, uls, urs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      ll_bl = c.towards(d, serif);
-      ll_br = ll_bl.towards(d, wide);
-      ll_brr = ll_br.towards(d, serif);
-      ll_tl = a.towards(b, serif);
-      ll_tr = ll_tl.towards(b, wide);
-      ll_trr = ll_tr.towards(b, serif);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      ll_bl = this.labels.c.towards(this.labels.d, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.wide);
+      ll_brr = ll_br.towards(this.labels.d, this.serif);
+      ll_tl = this.labels.a.towards(this.labels.b, this.serif);
+      ll_tr = ll_tl.towards(this.labels.b, this.wide);
+      ll_trr = ll_tr.towards(this.labels.b, this.serif);
       outline.drawLine(ll_tl, ll_bl);
       outline.drawLine(ll_tr, ll_br);
-      lls = outline.drawTouchingCircle(c, ll_bl, ll_tl);
-      uls = outline.drawTouchingCircle(ll_bl, ll_tl, a);
+      lls = outline.drawTouchingCircle(this.labels.c, ll_bl, ll_tl);
+      uls = outline.drawTouchingCircle(ll_bl, ll_tl, this.labels.a);
       urs = outline.drawTouchingCircle(ll_trr, ll_tr, ll_br);
       lrs = outline.drawTouchingCircle(ll_tr, ll_br, ll_brr);
-      rul_l = intersect(e, f, ll_tr, ll_br);
-      rul_r = intersect(a, b, rul_l, new Point(rul_l.x + b.x - c.x, rul_l.y + b.y - c.y));
+      rul_l = intersect(this.labels.e, this.labels.f, ll_tr, ll_br);
+      rul_r = intersect(this.labels.a, this.labels.b, rul_l, new Point(rul_l.x + this.labels.b.x - this.labels.c.x, rul_l.y + this.labels.b.y - this.labels.c.y));
       outline.drawLine(rul_l, rul_r);
-      rul_rr = rul_r.towards(b, serif);
+      rul_rr = rul_r.towards(this.labels.b, this.serif);
       rul_rs = outline.drawTouchingCircle(rul_rr, rul_r, rul_l);
-      temp = rul_l.towards(new Point(rul_l.x + a.x - d.x, rul_l.y + a.y - d.y), narrow);
-      rul_ll = intersect(ll_tr, ll_br, temp, new Point(temp.x + b.x - c.x, temp.y + b.y - c.y));
-      rul_rl = intersect(a, b, temp, rul_ll);
+      temp = rul_l.towards(new Point(rul_l.x + this.labels.a.x - this.labels.d.x, rul_l.y + this.labels.a.y - this.labels.d.y), this.narrow);
+      rul_ll = intersect(ll_tr, ll_br, temp, new Point(temp.x + this.labels.b.x - this.labels.c.x, temp.y + this.labels.b.y - this.labels.c.y));
+      rul_rl = intersect(this.labels.a, this.labels.b, temp, rul_ll);
       outline.drawLine(rul_ll, rul_rl);
-      rul_rll = rul_rl.towards(a, serif);
+      rul_rll = rul_rl.towards(this.labels.a, this.serif);
       rul_ls = outline.drawTouchingCircle(rul_ll, rul_rl, rul_rll);
-      rll_lr = intersect(c, d, rul_ll, new Point(rul_ll.x + d.x - a.x, rul_ll.y + d.y - a.y));
+      rll_lr = intersect(this.labels.c, this.labels.d, rul_ll, new Point(rul_ll.x + this.labels.d.x - this.labels.a.x, rul_ll.y + this.labels.d.y - this.labels.a.y));
       rll_ll = intersect(rul_l, rul_r, rul_ll, rll_lr);
       outline.drawLine(rll_lr, rll_ll);
-      rll_lt = outline.drawTouchingCircle(d, rll_lr, rll_ll);
-      named_points.g = rll_lt.center;
-      rll_ul = rll_ll.towards(rul_r, wide);
-      rll_ur = intersect(c, d, rll_ul, new Point(rll_ul.x + d.x - a.x, rll_ul.y + d.y - a.y));
+      rll_lt = outline.drawTouchingCircle(this.labels.d, rll_lr, rll_ll);
+      this.labels.g = rll_lt.center;
+      rll_ul = rll_ll.towards(rul_r, this.wide);
+      rll_ur = intersect(this.labels.c, this.labels.d, rll_ul, new Point(rll_ul.x + this.labels.d.x - this.labels.a.x, rll_ul.y + this.labels.d.y - this.labels.a.y));
       outline.drawLine(rll_ur, rll_ul);
-      rll_ut = outline.drawTouchingCircle(rll_ul, rll_ur, d);
-      named_points.h = rll_ut.center;
+      rll_ut = outline.drawTouchingCircle(rll_ul, rll_ur, this.labels.d);
+      this.labels.h = rll_ut.center;
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(lls, true);
       render.addArc(uls, true);
       render.addArc(urs, true);
@@ -1336,187 +1255,157 @@
       render.lineTo(rul_l);
       render.addArc(lrs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawM: function(id, variant, proportions) {
-      var a, b, c, d, dab, e, f, g, ll_bll, ll_br, ll_brr, ll_ls, ll_rs, ll_tl, ll_ts, ml_lt, ml_rb, mr_lb, mr_rt, named_points, narrow, outline, prop, render, rl_bl, rl_bll, rl_brr, rl_ls, rl_rs, rl_tl, rl_tr, rl_ts, serif, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var dab, ll_bll, ll_br, ll_brr, ll_ls, ll_rs, ll_tl, ll_ts, ml_lt, ml_rb, mr_lb, mr_rt, outline, render, rl_bl, rl_bll, rl_brr, rl_ls, rl_rs, rl_tl, rl_tr, rl_ts;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      dab = a.distance(b);
-      f = named_points.f = a.towards(b, dab / 6);
-      g = named_points.g = b.towards(a, dab / 6);
-      ll_tl = f.towards(a, narrow);
-      outline.drawLine(ll_tl, c);
-      ll_br = c.towards(d, narrow);
-      outline.drawLine(f, ll_br);
-      ll_bll = c.towards(d, -serif);
-      ll_brr = ll_br.towards(d, serif);
-      ll_ls = outline.drawTouchingCircle(ll_bll, c, ll_tl);
-      ll_rs = outline.drawTouchingCircle(f, ll_br, ll_brr);
-      ll_ts = outline.drawTouchingCircle(c, ll_tl, a.towards(b, -narrow));
-      rl_tr = g.towards(b, narrow);
-      outline.drawLine(rl_tr, d);
-      rl_tl = rl_tr.towards(a, wide);
-      rl_bl = d.towards(c, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      dab = this.labels.a.distance(this.labels.b);
+      this.labels.f = this.labels.a.towards(this.labels.b, dab / 6);
+      this.labels.g = this.labels.b.towards(this.labels.a, dab / 6);
+      ll_tl = this.labels.f.towards(this.labels.a, this.narrow);
+      outline.drawLine(ll_tl, this.labels.c);
+      ll_br = this.labels.c.towards(this.labels.d, this.narrow);
+      outline.drawLine(this.labels.f, ll_br);
+      ll_bll = this.labels.c.towards(this.labels.d, -this.serif);
+      ll_brr = ll_br.towards(this.labels.d, this.serif);
+      ll_ls = outline.drawTouchingCircle(ll_bll, this.labels.c, ll_tl);
+      ll_rs = outline.drawTouchingCircle(this.labels.f, ll_br, ll_brr);
+      ll_ts = outline.drawTouchingCircle(this.labels.c, ll_tl, this.labels.a.towards(this.labels.b, -this.narrow));
+      rl_tr = this.labels.g.towards(this.labels.b, this.narrow);
+      outline.drawLine(rl_tr, this.labels.d);
+      rl_tl = rl_tr.towards(this.labels.a, this.wide);
+      rl_bl = this.labels.d.towards(this.labels.c, this.wide);
       outline.drawLine(rl_tl, rl_bl);
-      rl_bll = rl_bl.towards(c, serif);
+      rl_bll = rl_bl.towards(this.labels.c, this.serif);
       rl_ls = outline.drawTouchingCircle(rl_bll, rl_bl, rl_tl);
-      rl_brr = d.towards(c, -serif);
-      rl_rs = outline.drawTouchingCircle(rl_tr, d, rl_brr);
-      rl_ts = outline.drawTouchingCircle(b.towards(a, narrow), rl_tr, d);
-      e = named_points.e = midPoint(c, d);
-      ml_lt = f.towards(a, wide);
-      outline.drawLine(ml_lt, e);
-      ml_rb = e.towards(d, wide);
-      outline.drawLine(f, ml_rb);
-      mr_lb = e.towards(c, narrow);
-      outline.drawLine(g, mr_lb);
-      mr_rt = g.towards(b, narrow);
-      outline.drawLine(mr_rt, e);
+      rl_brr = this.labels.d.towards(this.labels.c, -this.serif);
+      rl_rs = outline.drawTouchingCircle(rl_tr, this.labels.d, rl_brr);
+      rl_ts = outline.drawTouchingCircle(this.labels.b.towards(this.labels.a, this.narrow), rl_tr, this.labels.d);
+      this.labels.e = midPoint(this.labels.c, this.labels.d);
+      ml_lt = this.labels.f.towards(this.labels.a, this.wide);
+      outline.drawLine(ml_lt, this.labels.e);
+      ml_rb = this.labels.e.towards(this.labels.d, this.wide);
+      outline.drawLine(this.labels.f, ml_rb);
+      mr_lb = this.labels.e.towards(this.labels.c, this.narrow);
+      outline.drawLine(this.labels.g, mr_lb);
+      mr_rt = this.labels.g.towards(this.labels.b, this.narrow);
+      outline.drawLine(mr_rt, this.labels.e);
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(ll_ls, true);
       render.addArc(ll_ts, true);
-      render.lineTo(f);
-      render.lineTo(intersect(f, ml_rb, mr_lb, g));
-      render.lineTo(g);
+      render.lineTo(this.labels.f);
+      render.lineTo(intersect(this.labels.f, ml_rb, mr_lb, this.labels.g));
+      render.lineTo(this.labels.g);
       render.addArc(rl_ts, true);
       render.addArc(rl_rs, true);
       render.addArc(rl_ls, true);
-      render.lineTo(intersect(rl_bl, rl_tl, e, mr_rt));
-      render.lineTo(e);
-      render.lineTo(intersect(e, ml_lt, f, ll_br));
+      render.lineTo(intersect(rl_bl, rl_tl, this.labels.e, mr_rt));
+      render.lineTo(this.labels.e);
+      render.lineTo(intersect(this.labels.e, ml_lt, this.labels.f, ll_br));
       render.addArc(ll_rs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawN: function(id, variant, proportions) {
-      var a, b, c, d, e, ll_bl, ll_br, ll_brr, ll_ls, ll_rs, ll_tl, ll_tr, ll_ts, named_points, narrow, outline, prop, render, rl_bl, rl_ls, rl_rs, rl_tl, rl_tll, rl_tr, serif, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var ll_bl, ll_br, ll_brr, ll_ls, ll_rs, ll_tl, ll_tr, ll_ts, outline, render, rl_bl, rl_ls, rl_rs, rl_tl, rl_tll, rl_tr;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      ll_bl = c.towards(d, serif);
-      ll_br = ll_bl.towards(d, narrow);
-      ll_brr = ll_br.towards(d, serif);
-      ll_tl = a.towards(b, serif);
-      ll_tr = ll_tl.towards(b, narrow);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      ll_bl = this.labels.c.towards(this.labels.d, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.narrow);
+      ll_brr = ll_br.towards(this.labels.d, this.serif);
+      ll_tl = this.labels.a.towards(this.labels.b, this.serif);
+      ll_tr = ll_tl.towards(this.labels.b, this.narrow);
       outline.drawLine(ll_tl, ll_bl);
       outline.drawLine(ll_tr, ll_br);
-      ll_ls = outline.drawTouchingCircle(c, ll_bl, ll_tl);
-      ll_ts = outline.drawTouchingCircle(ll_bl, ll_tl, a.towards(b, -serif / (Math.sqrt(2))));
+      ll_ls = outline.drawTouchingCircle(this.labels.c, ll_bl, ll_tl);
+      ll_ts = outline.drawTouchingCircle(ll_bl, ll_tl, this.labels.a.towards(this.labels.b, -this.serif / (Math.sqrt(2))));
       ll_rs = outline.drawTouchingCircle(ll_tr, ll_br, ll_brr);
-      e = named_points.e = d.towards(c, serif);
-      outline.drawLine(a, e);
-      outline.drawLine(ll_tr, d);
-      rl_bl = e.towards(c, narrow);
-      rl_tr = b.towards(a, serif);
-      rl_tl = rl_tr.towards(a, narrow);
-      rl_tll = rl_tl.towards(a, serif);
+      this.labels.e = this.labels.d.towards(this.labels.c, this.serif);
+      outline.drawLine(this.labels.a, this.labels.e);
+      outline.drawLine(ll_tr, this.labels.d);
+      rl_bl = this.labels.e.towards(this.labels.c, this.narrow);
+      rl_tr = this.labels.b.towards(this.labels.a, this.serif);
+      rl_tl = rl_tr.towards(this.labels.a, this.narrow);
+      rl_tll = rl_tl.towards(this.labels.a, this.serif);
       outline.drawLine(rl_tl, rl_bl);
-      outline.drawLine(rl_tr, e);
+      outline.drawLine(rl_tr, this.labels.e);
       rl_ls = outline.drawTouchingCircle(rl_bl, rl_tl, rl_tll);
-      rl_rs = outline.drawTouchingCircle(b, rl_tr, e);
+      rl_rs = outline.drawTouchingCircle(this.labels.b, rl_tr, this.labels.e);
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
+      render.moveTo(this.labels.c);
       render.addArc(ll_ls, true);
       render.addArc(ll_ts, true);
       render.lineTo(ll_tr);
-      render.lineTo(intersect(ll_tr, d, rl_bl, rl_tl));
+      render.lineTo(intersect(ll_tr, this.labels.d, rl_bl, rl_tl));
       render.addArc(rl_ls, true);
       render.addArc(rl_rs, true);
-      render.lineTo(e);
-      render.lineTo(intersect(e, a, ll_tr, ll_br));
+      render.lineTo(this.labels.e);
+      render.lineTo(intersect(this.labels.e, this.labels.a, ll_tr, ll_br));
       render.addArc(ll_rs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawO: function(id, variant, proportions) {
-      var a, b, c, d, e, f, fgl, fgr, g, h, ib, il, ir, it, llor, ltc, ltci, named_points, narrow, ob, ol, ot, outline, prop, radius, render, serif, tailRadius, utc, utci, wide, _or;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var fgl, fgr, ib, il, ir, it, llor, ltc, ltci, ob, ol, ot, outline, radius, render, tailRadius, utc, utci, _or;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      outline.drawLine(c, b);
-      e = named_points.e = midPoint(c, b);
-      f = named_points.f = e.towards(c, wide / 2);
-      g = named_points.g = e.towards(b, wide / 2);
-      ol = new Point(c.x, f.y);
-      ob = new Point(f.x, c.y);
-      _or = new Point(b.x, g.y);
-      ot = new Point(g.x, b.y);
-      radius = f.distance(ol);
-      outline.drawCircle(f, ob);
-      outline.drawCircle(g, ot);
-      fgr = new Point(f.y, g.x);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.c, this.labels.b);
+      this.labels.e = midPoint(this.labels.c, this.labels.b);
+      this.labels.f = this.labels.e.towards(this.labels.c, this.wide / 2);
+      this.labels.g = this.labels.e.towards(this.labels.b, this.wide / 2);
+      ol = new Point(this.labels.c.x, this.labels.f.y);
+      ob = new Point(this.labels.f.x, this.labels.c.y);
+      _or = new Point(this.labels.b.x, this.labels.g.y);
+      ot = new Point(this.labels.g.x, this.labels.b.y);
+      radius = this.labels.f.distance(ol);
+      outline.drawCircle(this.labels.f, ob);
+      outline.drawCircle(this.labels.g, ot);
+      fgr = new Point(this.labels.f.y, this.labels.g.x);
       outline.drawCircle(fgr, ot);
-      fgl = new Point(f.x, g.y);
+      fgl = new Point(this.labels.f.x, this.labels.g.y);
       outline.drawCircle(fgl, ob);
-      il = new Point(g.x - radius, g.y);
-      it = new Point(f.x, f.y - radius);
-      ib = new Point(g.x, g.y + radius);
-      ir = new Point(f.x + radius, f.y);
+      il = new Point(this.labels.g.x - radius, this.labels.g.y);
+      it = new Point(this.labels.f.x, this.labels.f.y - radius);
+      ib = new Point(this.labels.g.x, this.labels.g.y + radius);
+      ir = new Point(this.labels.f.x + radius, this.labels.f.y);
       outline.drawCircle(fgl, il);
       outline.drawCircle(fgr, ir);
       if (variant === 'q') {
-        outline.drawLine(a, d);
-        tailRadius = c.distance(d);
-        outline.drawLine(d, d.towards(c, -tailRadius));
-        h = named_points.h = new Point((d.towards(c, -3 * tailRadius / 4)).x, d.y + 0.01);
-        utc = (intersectCircles(d, tailRadius, h, tailRadius)).left;
-        outline.drawLine(h, utc);
-        outline.drawLine(d, utc);
-        outline.drawCircle(utc, d);
+        outline.drawLine(this.labels.a, this.labels.d);
+        tailRadius = this.labels.c.distance(this.labels.d);
+        outline.drawLine(this.labels.d, this.labels.d.towards(this.labels.c, -tailRadius));
+        this.labels.h = new Point((this.labels.d.towards(this.labels.c, -3 * tailRadius / 4)).x, this.labels.d.y + 0.01);
+        utc = (intersectCircles(this.labels.d, tailRadius, this.labels.h, tailRadius)).left;
+        outline.drawLine(this.labels.h, utc);
+        outline.drawLine(this.labels.d, utc);
+        outline.drawCircle(utc, this.labels.d);
         llor = fgl.distance(_or);
         utci = (intersectCircles(utc, tailRadius, fgl, llor)).left;
-        outline.drawCircle(utci, new Point(utci.x, utci.y + wide));
-        ltci = (intersectCircles(utci, wide, fgl, llor)).left;
-        ltc = (intersectCircles(ltci, tailRadius, h, tailRadius)).left;
+        outline.drawCircle(utci, new Point(utci.x, utci.y + this.wide));
+        ltci = (intersectCircles(utci, this.wide, fgl, llor)).left;
+        ltc = (intersectCircles(ltci, tailRadius, this.labels.h, tailRadius)).left;
         outline.drawLine(ltci, ltc);
-        outline.drawLine(h, ltc);
-        outline.drawCircle(ltc, h);
+        outline.drawLine(this.labels.h, ltc);
+        outline.drawCircle(ltc, this.labels.h);
       }
       render = new FillShape(sys.ctx);
       render.moveTo(ob);
       render.addArc({
         from: ob,
         to: ol,
-        center: f
+        center: this.labels.f
       }, false);
       render.addArc({
         from: ol,
@@ -1526,7 +1415,7 @@
       render.addArc({
         from: ot,
         to: _or,
-        center: g
+        center: this.labels.g
       }, false);
       if (variant !== 'q') {
         render.addArc({
@@ -1542,11 +1431,11 @@
         }, false);
         render.addArc({
           from: utci,
-          to: h,
+          to: this.labels.h,
           center: utc
         }, true);
         render.addArc({
-          from: h,
+          from: this.labels.h,
           to: ltci,
           center: ltc
         }, false);
@@ -1565,7 +1454,7 @@
       render.addArc({
         from: ir,
         to: it,
-        center: f
+        center: this.labels.f
       }, true);
       render.addArc({
         from: it,
@@ -1575,53 +1464,43 @@
       render.addArc({
         from: il,
         to: ib,
-        center: g
+        center: this.labels.g
       }, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawS: function(id, variant, proportions) {
-      var a, angle, b, bic, bir, boc, bor, c, d, e, f, g, h, hyp, i, k, l, lt, lti, ltu, ltx, m, n, named_points, narrow, outline, prop, render, rtl, rtu, serif, tic, toc, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var angle, bic, bir, boc, bor, hyp, lt, lti, ltu, ltx, outline, render, rtl, rtu, tic, toc;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      g = named_points.g = midPoint(a, b);
-      h = named_points.h = midPoint(c, d);
-      outline.drawLine(g, h);
-      m = named_points.m = intersect(e, f, g, h);
-      i = named_points.i = g.towards(h, narrow);
-      k = named_points.k = h.towards(g, narrow);
-      l = named_points.l = m.towards(h, wide / 3);
-      n = named_points.n = m.towards(g, 2 * wide / 3);
-      toc = midPoint(g, l);
-      outline.drawCircle(toc, g);
-      tic = midPoint(i, n);
-      outline.drawCircle(tic, i);
-      boc = midPoint(n, h);
-      outline.drawCircle(boc, h);
-      bic = midPoint(l, k);
-      outline.drawCircle(bic, k);
-      rtl = new Point(tic.x + (tic.distance(i)), tic.y);
-      outline.drawCircle(rtl, rtl.towards(tic, 4 * wide / 3));
-      rtu = (intersectCircles(rtl, 4 * wide / 3, toc, toc.distance(g))).left;
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = midPoint(this.labels.a, this.labels.b);
+      this.labels.h = midPoint(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.g, this.labels.h);
+      this.labels.m = intersect(this.labels.e, this.labels.f, this.labels.g, this.labels.h);
+      this.labels.i = this.labels.g.towards(this.labels.h, this.narrow);
+      this.labels.k = this.labels.h.towards(this.labels.g, this.narrow);
+      this.labels.l = this.labels.m.towards(this.labels.h, this.wide / 3);
+      this.labels.n = this.labels.m.towards(this.labels.g, 2 * this.wide / 3);
+      toc = midPoint(this.labels.g, this.labels.l);
+      outline.drawCircle(toc, this.labels.g);
+      tic = midPoint(this.labels.i, this.labels.n);
+      outline.drawCircle(tic, this.labels.i);
+      boc = midPoint(this.labels.n, this.labels.h);
+      outline.drawCircle(boc, this.labels.h);
+      bic = midPoint(this.labels.l, this.labels.k);
+      outline.drawCircle(bic, this.labels.k);
+      rtl = new Point(tic.x + (tic.distance(this.labels.i)), tic.y);
+      outline.drawCircle(rtl, rtl.towards(tic, 4 * this.wide / 3));
+      rtu = (intersectCircles(rtl, 4 * this.wide / 3, toc, toc.distance(this.labels.g))).left;
       outline.drawLine(rtl, rtu);
-      bir = bic.distance(l);
-      bor = boc.distance(n);
+      bir = bic.distance(this.labels.l);
+      bor = boc.distance(this.labels.n);
       ltx = boc.x - (bir + bor) / 2;
       lt = vertCircle(boc, bor, ltx);
       outline.drawLine(lt.lower, lt.upper);
@@ -1635,85 +1514,75 @@
       render.moveTo(ltu);
       render.addArc({
         from: lti,
-        to: l,
+        to: this.labels.l,
         center: bic
       }, true);
       render.addArc({
-        from: l,
+        from: this.labels.l,
         to: rtu,
         center: toc
       }, false);
       render.addArc({
         from: rtl,
-        to: n,
+        to: this.labels.n,
         center: tic
       }, true);
       render.addArc({
-        from: n,
+        from: this.labels.n,
         to: lt.lower,
         center: boc
       }, false);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawT: function(id, variant, proportions) {
-      var a, b, bls, brs, c, d, e, f, l_bl, l_bll, l_br, l_brr, l_tl, l_tr, lib, lic, lilb, lir, lob, loc, lor, ltl, ltu, named_points, narrow, outline, prop, render, serif, tl_l, tl_ll, tl_lu, tl_r, tl_rl, tl_ru, tlls, tlus, trls, trus, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bls, brs, l_bl, l_bll, l_br, l_brr, l_tl, l_tr, lib, lic, lilb, lir, lob, loc, lor, ltl, ltu, outline, render, tl_l, tl_ll, tl_lu, tl_r, tl_rl, tl_ru, tlls, tlus, trls, trus;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      l_bl = (midPoint(c, d)).towards(c, wide / 2);
-      l_br = l_bl.towards(d, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      l_bl = (midPoint(this.labels.c, this.labels.d)).towards(this.labels.c, this.wide / 2);
+      l_br = l_bl.towards(this.labels.d, this.wide);
       if (variant !== 'j') {
-        l_bll = l_bl.towards(c, serif);
-        l_brr = l_br.towards(d, serif);
+        l_bll = l_bl.towards(this.labels.c, this.serif);
+        l_brr = l_br.towards(this.labels.d, this.serif);
       }
-      l_tl = (midPoint(a, b)).towards(a, wide / 2);
-      l_tr = l_tl.towards(b, wide);
-      e = named_points.e = a.towards(b, wide);
-      f = named_points.f = b.towards(a, wide);
+      l_tl = (midPoint(this.labels.a, this.labels.b)).towards(this.labels.a, this.wide / 2);
+      l_tr = l_tl.towards(this.labels.b, this.wide);
+      this.labels.e = this.labels.e = this.labels.a.towards(this.labels.b, this.wide);
+      this.labels.f = this.labels.f = this.labels.b.towards(this.labels.a, this.wide);
       outline.drawLine(l_tl, l_bl);
       outline.drawLine(l_tr, l_br);
       if (variant !== 'j') {
         bls = outline.drawTouchingCircle(l_bll, l_bl, l_tl);
         brs = outline.drawTouchingCircle(l_tr, l_br, l_brr);
       } else {
-        lob = midPoint(c, l_br);
-        lor = lob.distance(c);
-        loc = new Point(c.x + lor, c.y - lor);
+        lob = midPoint(this.labels.c, l_br);
+        lor = lob.distance(this.labels.c);
+        loc = new Point(this.labels.c.x + lor, this.labels.c.y - lor);
         outline.drawCircle(loc, lob);
-        lilb = new Point(e.x - narrow / 2, c.y);
+        lilb = new Point(this.labels.e.x - this.narrow / 2, this.labels.c.y);
         lib = midPoint(lilb, l_bl);
         lir = lib.distance(l_bl);
-        lic = new Point(lib.x, c.y - lir - narrow);
-        outline.drawCircle(lic, new Point(lib.x, lib.y - narrow));
-        outline.drawLine(e, new Point(e.x, c.y));
-        ltu = (vertCircle(lic, lir, e.x)).lower;
-        ltl = (vertCircle(loc, lor, e.x)).lower;
+        lic = new Point(lib.x, this.labels.c.y - lir - this.narrow);
+        outline.drawCircle(lic, new Point(lib.x, lib.y - this.narrow));
+        outline.drawLine(this.labels.e, new Point(this.labels.e.x, this.labels.c.y));
+        ltu = (vertCircle(lic, lir, this.labels.e.x)).lower;
+        ltl = (vertCircle(loc, lor, this.labels.e.x)).lower;
       }
-      tl_l = a.towards(c, narrow);
-      tl_r = b.towards(d, narrow);
+      tl_l = this.labels.a.towards(this.labels.c, this.narrow);
+      tl_r = this.labels.b.towards(this.labels.d, this.narrow);
       outline.drawLine(tl_l, tl_r);
-      tl_ll = new Point(e.x - 3 * narrow, e.y + 2 * narrow);
-      tl_lu = new Point(e.x + narrow, e.y - narrow);
+      tl_ll = new Point(this.labels.e.x - 3 * this.narrow, this.labels.e.y + 2 * this.narrow);
+      tl_lu = new Point(this.labels.e.x + this.narrow, this.labels.e.y - this.narrow);
       outline.drawLine(tl_ll, tl_lu);
-      tl_rl = new Point(f.x - 2 * narrow, e.y + 2 * narrow);
-      tl_ru = new Point(f.x + 2 * narrow, e.y - narrow);
+      tl_rl = new Point(this.labels.f.x - 2 * this.narrow, this.labels.e.y + 2 * this.narrow);
+      tl_ru = new Point(this.labels.f.x + 2 * this.narrow, this.labels.e.y - this.narrow);
       outline.drawLine(tl_rl, tl_ru);
       tlls = outline.drawTouchingCircle(tl_r, intersect(tl_l, tl_r, tl_ll, tl_lu), tl_ll);
-      tlus = outline.drawTouchingCircle(tl_lu, intersect(a, b, tl_ll, tl_lu), b);
-      trus = outline.drawTouchingCircle(a, intersect(a, b, tl_rl, tl_ru), tl_ru);
+      tlus = outline.drawTouchingCircle(tl_lu, intersect(this.labels.a, this.labels.b, tl_ll, tl_lu), this.labels.b);
+      trus = outline.drawTouchingCircle(this.labels.a, intersect(this.labels.a, this.labels.b, tl_rl, tl_ru), tl_ru);
       trls = outline.drawTouchingCircle(tl_rl, intersect(tl_l, tl_r, tl_rl, tl_ru), tl_l);
       render = new FillShape(sys.ctx);
       if (variant !== 'j') {
@@ -1743,50 +1612,40 @@
         }, false);
       }
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawU: function(id, variant, proportions) {
-      var a, b, c, d, e, f, g, h, i, lic, lir, ll_br, ll_tr, ll_trr, loc, lor, named_points, narrow, outline, prop, render, rl_bl, rl_tl, rl_tll, rlls, rlrs, serif, tlls, tlrs, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var lic, lir, ll_br, ll_tr, ll_trr, loc, lor, outline, render, rl_bl, rl_tl, rl_tll, rlls, rlrs, tlls, tlrs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(c, d);
-      f = named_points.f = a.towards(b, serif);
-      g = named_points.g = c.towards(d, serif);
-      outline.drawLine(f, g);
-      h = named_points.h = b.towards(a, serif);
-      i = named_points.i = d.towards(c, serif);
-      outline.drawLine(h, i);
-      ll_tr = f.towards(b, wide);
-      ll_trr = ll_tr.towards(b, serif);
-      ll_br = g.towards(d, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.c, this.labels.d);
+      this.labels.f = this.labels.a.towards(this.labels.b, this.serif);
+      this.labels.g = this.labels.c.towards(this.labels.d, this.serif);
+      outline.drawLine(this.labels.f, this.labels.g);
+      this.labels.h = this.labels.b.towards(this.labels.a, this.serif);
+      this.labels.i = this.labels.d.towards(this.labels.c, this.serif);
+      outline.drawLine(this.labels.h, this.labels.i);
+      ll_tr = this.labels.f.towards(this.labels.b, this.wide);
+      ll_trr = ll_tr.towards(this.labels.b, this.serif);
+      ll_br = this.labels.g.towards(this.labels.d, this.wide);
       outline.drawLine(ll_tr, ll_br);
-      tlls = outline.drawTouchingCircle(g, f, a);
+      tlls = outline.drawTouchingCircle(this.labels.g, this.labels.f, this.labels.a);
       tlrs = outline.drawTouchingCircle(ll_trr, ll_tr, ll_br);
-      rl_tl = h.towards(a, wide);
-      rl_tll = rl_tl.towards(a, serif);
-      rl_bl = i.towards(c, wide);
+      rl_tl = this.labels.h.towards(this.labels.a, this.wide);
+      rl_tll = rl_tl.towards(this.labels.a, this.serif);
+      rl_bl = this.labels.i.towards(this.labels.c, this.wide);
       outline.drawLine(rl_tl, rl_bl);
       rlls = outline.drawTouchingCircle(rl_bl, rl_tl, rl_tll);
-      rlrs = outline.drawTouchingCircle(b, h, i);
-      lor = e.distance(g);
-      loc = new Point(e.x, e.y - lor);
-      outline.drawCircle(loc, e);
-      lir = e.distance(ll_br);
-      lic = new Point(e.x, e.y - lir - narrow);
-      outline.drawCircle(lic, new Point(e.x, e.y - narrow));
+      rlrs = outline.drawTouchingCircle(this.labels.b, this.labels.h, this.labels.i);
+      lor = this.labels.e.distance(this.labels.g);
+      loc = new Point(this.labels.e.x, this.labels.e.y - lor);
+      outline.drawCircle(loc, this.labels.e);
+      lir = this.labels.e.distance(ll_br);
+      lic = new Point(this.labels.e.x, this.labels.e.y - lir - this.narrow);
+      outline.drawCircle(lic, new Point(this.labels.e.x, this.labels.e.y - this.narrow));
       render = new FillShape(sys.ctx);
       render.moveTo(tlls.from);
       render.addArc(tlls, true);
@@ -1799,223 +1658,183 @@
       render.addArc(rlls, true);
       render.addArc(rlrs, true);
       render.addArc({
-        from: new Point(h.x, loc.y),
-        to: new Point(f.x, loc.y),
+        from: new Point(this.labels.h.x, loc.y),
+        to: new Point(this.labels.f.x, loc.y),
         center: loc
       }, false);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawV: function(id, variant, proportions) {
-      var a, b, c, d, e, f, g, ll_br, ll_tr, ll_trr, llls, llrs, named_points, narrow, outline, prop, render, rl_bl, rl_tl, rl_tll, rlls, rlrs, serif, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var ll_br, ll_tr, ll_trr, llls, llrs, outline, render, rl_bl, rl_tl, rl_tll, rlls, rlrs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(c, d);
-      f = named_points.f = a.towards(b, serif);
-      g = named_points.g = b.towards(a, serif);
-      ll_tr = f.towards(b, wide);
-      ll_trr = ll_tr.towards(b, serif);
-      ll_br = e.towards(d, wide);
-      outline.drawLine(f, e);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.c, this.labels.d);
+      this.labels.f = this.labels.a.towards(this.labels.b, this.serif);
+      this.labels.g = this.labels.b.towards(this.labels.a, this.serif);
+      ll_tr = this.labels.f.towards(this.labels.b, this.wide);
+      ll_trr = ll_tr.towards(this.labels.b, this.serif);
+      ll_br = this.labels.e.towards(this.labels.d, this.wide);
+      outline.drawLine(this.labels.f, this.labels.e);
       outline.drawLine(ll_tr, ll_br);
-      llls = outline.drawTouchingCircle(e, f, a);
+      llls = outline.drawTouchingCircle(this.labels.e, this.labels.f, this.labels.a);
       llrs = outline.drawTouchingCircle(ll_trr, ll_tr, ll_br);
-      rl_tl = g.towards(a, narrow);
-      rl_tll = rl_tl.towards(a, serif);
-      rl_bl = e.towards(c, narrow);
+      rl_tl = this.labels.g.towards(this.labels.a, this.narrow);
+      rl_tll = rl_tl.towards(this.labels.a, this.serif);
+      rl_bl = this.labels.e.towards(this.labels.c, this.narrow);
       outline.drawLine(rl_tl, rl_bl);
-      outline.drawLine(g, e);
+      outline.drawLine(this.labels.g, this.labels.e);
       rlls = outline.drawTouchingCircle(rl_bl, rl_tl, rl_tll);
-      rlrs = outline.drawTouchingCircle(b, g, e);
+      rlrs = outline.drawTouchingCircle(this.labels.b, this.labels.g, this.labels.e);
       render = new FillShape(sys.ctx);
-      render.moveTo(e);
+      render.moveTo(this.labels.e);
       render.addArc(llls, true);
       render.addArc(llrs, true);
       render.lineTo(intersect(ll_tr, ll_br, rl_tl, rl_bl));
       render.addArc(rlls, true);
       render.addArc(rlrs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawW: function(id, variant, proportions) {
-      var a, a_l, a_r, a_rr, als, ars, b, b_l, b_ll, b_r, bls, brs, c, d, e, e_l, e_r, f, f_l, f_r, fg, g, g_l, g_r, named_points, narrow, outline, prop, render, serif, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var a_l, a_r, a_rr, als, ars, b_l, b_ll, b_r, bls, brs, e_l, e_r, f_l, f_r, fg, g_l, g_r, outline, render;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, b);
-      fg = midPoint(c, d);
-      f = named_points.f = midPoint(c, fg);
-      g = named_points.g = midPoint(fg, d);
-      f_l = f.towards(c, narrow);
-      f_r = f.towards(d, wide);
-      g_l = g.towards(c, narrow);
-      g_r = g.towards(d, wide);
-      a_l = a.towards(b, -serif);
-      a_r = a.towards(b, wide);
-      a_rr = a_r.towards(b, serif);
-      outline.drawLine(a, f);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.b);
+      fg = midPoint(this.labels.c, this.labels.d);
+      this.labels.f = midPoint(this.labels.c, fg);
+      this.labels.g = midPoint(fg, this.labels.d);
+      f_l = this.labels.f.towards(this.labels.c, this.narrow);
+      f_r = this.labels.f.towards(this.labels.d, this.wide);
+      g_l = this.labels.g.towards(this.labels.c, this.narrow);
+      g_r = this.labels.g.towards(this.labels.d, this.wide);
+      a_l = this.labels.a.towards(this.labels.b, -this.serif);
+      a_r = this.labels.a.towards(this.labels.b, this.wide);
+      a_rr = a_r.towards(this.labels.b, this.serif);
+      outline.drawLine(this.labels.a, this.labels.f);
       outline.drawLine(a_r, f_r);
-      e_l = e.towards(a, wide);
-      e_r = e.towards(b, narrow);
-      outline.drawLine(e, f_l);
-      outline.drawLine(e_r, f);
-      als = outline.drawTouchingCircle(f, a, a_l);
+      e_l = this.labels.e.towards(this.labels.a, this.wide);
+      e_r = this.labels.e.towards(this.labels.b, this.narrow);
+      outline.drawLine(this.labels.e, f_l);
+      outline.drawLine(e_r, this.labels.f);
+      als = outline.drawTouchingCircle(this.labels.f, this.labels.a, a_l);
       ars = outline.drawTouchingCircle(a_rr, a_r, f_r);
-      outline.drawLine(e_l, g);
-      outline.drawLine(e, g_r);
-      b_l = b.towards(a, narrow);
-      b_ll = b_l.towards(a, serif);
-      b_r = b.towards(a, -serif);
+      outline.drawLine(e_l, this.labels.g);
+      outline.drawLine(this.labels.e, g_r);
+      b_l = this.labels.b.towards(this.labels.a, this.narrow);
+      b_ll = b_l.towards(this.labels.a, this.serif);
+      b_r = this.labels.b.towards(this.labels.a, -this.serif);
       outline.drawLine(b_l, g_l);
-      outline.drawLine(b, g);
+      outline.drawLine(this.labels.b, this.labels.g);
       bls = outline.drawTouchingCircle(g_l, b_l, b_ll);
-      brs = outline.drawTouchingCircle(b_r, b, g);
+      brs = outline.drawTouchingCircle(b_r, this.labels.b, this.labels.g);
       render = new FillShape(sys.ctx);
-      render.moveTo(f);
+      render.moveTo(this.labels.f);
       render.addArc(als, true);
       render.addArc(ars, true);
-      render.lineTo(intersect(a_r, f_r, f_l, e));
-      render.lineTo(e);
-      render.lineTo(intersect(e, g_r, g_l, b_l));
+      render.lineTo(intersect(a_r, f_r, f_l, this.labels.e));
+      render.lineTo(this.labels.e);
+      render.lineTo(intersect(this.labels.e, g_r, g_l, b_l));
       render.addArc(bls, true);
       render.addArc(brs, true);
-      render.lineTo(g);
-      render.lineTo(intersect(g, e_l, e_r, f));
+      render.lineTo(this.labels.g);
+      render.lineTo(intersect(this.labels.g, e_l, e_r, this.labels.f));
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawX: function(id, variant, proportions) {
-      var a, b, bl_r, bl_rr, blls, blrs, br_l, br_ll, brls, brrs, c, d, f, g, h, i, named_points, narrow, outline, prop, render, serif, tl_r, tl_rr, tlls, tlrs, tr_l, tr_ll, trls, trrs, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bl_r, bl_rr, blls, blrs, br_l, br_ll, brls, brrs, outline, render, tl_r, tl_rr, tlls, tlrs, tr_l, tr_ll, trls, trrs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      f = named_points.f = a.towards(b, serif);
-      g = named_points.g = c.towards(d, serif);
-      outline.drawLine(f, g);
-      h = named_points.h = b.towards(a, serif);
-      i = named_points.i = d.towards(c, serif);
-      outline.drawLine(h, i);
-      tl_r = f.towards(b, wide);
-      tl_rr = tl_r.towards(b, serif);
-      bl_r = g.towards(d, narrow);
-      bl_rr = bl_r.towards(d, serif);
-      tr_l = h.towards(a, narrow);
-      tr_ll = tr_l.towards(a, serif);
-      br_l = i.towards(c, wide);
-      br_ll = br_l.towards(c, serif);
-      outline.drawLine(f, br_l);
-      outline.drawLine(tl_r, i);
-      outline.drawLine(tr_l, g);
-      outline.drawLine(h, bl_r);
-      tlls = outline.drawTouchingCircle(br_l, f, a);
-      tlrs = outline.drawTouchingCircle(tl_rr, tl_r, i);
-      trls = outline.drawTouchingCircle(g, tr_l, tr_ll);
-      trrs = outline.drawTouchingCircle(b, h, bl_r);
-      blls = outline.drawTouchingCircle(c, g, tr_l);
-      blrs = outline.drawTouchingCircle(h, bl_r, bl_rr);
-      brrs = outline.drawTouchingCircle(tl_r, i, d);
-      brls = outline.drawTouchingCircle(br_ll, br_l, f);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.f = this.labels.a.towards(this.labels.b, this.serif);
+      this.labels.g = this.labels.c.towards(this.labels.d, this.serif);
+      outline.drawLine(this.labels.f, this.labels.g);
+      this.labels.h = this.labels.b.towards(this.labels.a, this.serif);
+      this.labels.i = this.labels.d.towards(this.labels.c, this.serif);
+      outline.drawLine(this.labels.h, this.labels.i);
+      tl_r = this.labels.f.towards(this.labels.b, this.wide);
+      tl_rr = tl_r.towards(this.labels.b, this.serif);
+      bl_r = this.labels.g.towards(this.labels.d, this.narrow);
+      bl_rr = bl_r.towards(this.labels.d, this.serif);
+      tr_l = this.labels.h.towards(this.labels.a, this.narrow);
+      tr_ll = tr_l.towards(this.labels.a, this.serif);
+      br_l = this.labels.i.towards(this.labels.c, this.wide);
+      br_ll = br_l.towards(this.labels.c, this.serif);
+      outline.drawLine(this.labels.f, br_l);
+      outline.drawLine(tl_r, this.labels.i);
+      outline.drawLine(tr_l, this.labels.g);
+      outline.drawLine(this.labels.h, bl_r);
+      tlls = outline.drawTouchingCircle(br_l, this.labels.f, this.labels.a);
+      tlrs = outline.drawTouchingCircle(tl_rr, tl_r, this.labels.i);
+      trls = outline.drawTouchingCircle(this.labels.g, tr_l, tr_ll);
+      trrs = outline.drawTouchingCircle(this.labels.b, this.labels.h, bl_r);
+      blls = outline.drawTouchingCircle(this.labels.c, this.labels.g, tr_l);
+      blrs = outline.drawTouchingCircle(this.labels.h, bl_r, bl_rr);
+      brrs = outline.drawTouchingCircle(tl_r, this.labels.i, this.labels.d);
+      brls = outline.drawTouchingCircle(br_ll, br_l, this.labels.f);
       render = new FillShape(sys.ctx);
-      render.moveTo(g);
+      render.moveTo(this.labels.g);
       render.addArc(blls, true);
-      render.lineTo(intersect(g, tr_l, f, br_l));
+      render.lineTo(intersect(this.labels.g, tr_l, this.labels.f, br_l));
       render.addArc(tlls, true);
       render.addArc(tlrs, true);
-      render.lineTo(intersect(tl_r, i, g, tr_l));
+      render.lineTo(intersect(tl_r, this.labels.i, this.labels.g, tr_l));
       render.addArc(trls, true);
       render.addArc(trrs, true);
-      render.lineTo(intersect(h, bl_r, i, tl_r));
+      render.lineTo(intersect(this.labels.h, bl_r, this.labels.i, tl_r));
       render.addArc(brrs, true);
       render.addArc(brls, true);
-      render.lineTo(intersect(br_l, f, h, bl_r));
+      render.lineTo(intersect(br_l, this.labels.f, this.labels.h, bl_r));
       render.addArc(blrs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawY: function(id, variant, proportions) {
-      var a, b, bls, brs, c, d, e, f, ll_bl, ll_bll, ll_br, ll_brr, ll_tl, ll_tr, named_points, narrow, outline, prop, render, serif, tl_l, tl_r, tl_rr, tlls, tlm, tlrs, tr_l, tr_ll, tr_r, trls, trrs, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bls, brs, ll_bl, ll_bll, ll_br, ll_brr, ll_tl, ll_tr, outline, render, tl_l, tl_r, tl_rr, tlls, tlm, tlrs, tr_l, tr_ll, tr_r, trls, trrs;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = midPoint(a, c);
-      f = named_points.f = midPoint(b, d);
-      outline.drawLine(e, f);
-      ll_bl = (midPoint(c, d)).towards(c, wide / 2);
-      ll_bll = ll_bl.towards(c, serif);
-      ll_br = ll_bl.towards(d, wide);
-      ll_brr = ll_br.towards(d, serif);
-      ll_tl = (midPoint(e, f)).towards(e, wide / 2);
-      ll_tr = ll_tl.towards(f, wide);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = midPoint(this.labels.a, this.labels.c);
+      this.labels.f = midPoint(this.labels.b, this.labels.d);
+      outline.drawLine(this.labels.e, this.labels.f);
+      ll_bl = (midPoint(this.labels.c, this.labels.d)).towards(this.labels.c, this.wide / 2);
+      ll_bll = ll_bl.towards(this.labels.c, this.serif);
+      ll_br = ll_bl.towards(this.labels.d, this.wide);
+      ll_brr = ll_br.towards(this.labels.d, this.serif);
+      ll_tl = (midPoint(this.labels.e, this.labels.f)).towards(this.labels.e, this.wide / 2);
+      ll_tr = ll_tl.towards(this.labels.f, this.wide);
       outline.drawLine(ll_tl, ll_bl);
       outline.drawLine(ll_tr, ll_br);
       bls = outline.drawTouchingCircle(ll_bll, ll_bl, ll_tl);
       brs = outline.drawTouchingCircle(ll_tr, ll_br, ll_brr);
-      tlm = ll_tl.towards(ll_tr, 2 * wide / 3);
-      tl_l = a.towards(b, serif);
-      tl_r = tl_l.towards(b, 2 * wide / 3);
-      tl_rr = tl_r.towards(b, serif);
-      tr_r = b.towards(a, serif);
-      tr_l = tr_r.towards(a, wide / 3);
-      tr_ll = tr_l.towards(a, serif);
+      tlm = ll_tl.towards(ll_tr, 2 * this.wide / 3);
+      tl_l = this.labels.a.towards(this.labels.b, this.serif);
+      tl_r = tl_l.towards(this.labels.b, 2 * this.wide / 3);
+      tl_rr = tl_r.towards(this.labels.b, this.serif);
+      tr_r = this.labels.b.towards(this.labels.a, this.serif);
+      tr_l = tr_r.towards(this.labels.a, this.wide / 3);
+      tr_ll = tr_l.towards(this.labels.a, this.serif);
       outline.drawLine(tl_l, ll_tl);
       outline.drawLine(tl_r, tlm);
       outline.drawLine(tr_l, tlm);
       outline.drawLine(tr_r, ll_tr);
-      tlls = outline.drawTouchingCircle(ll_tl, tl_l, a);
+      tlls = outline.drawTouchingCircle(ll_tl, tl_l, this.labels.a);
       tlrs = outline.drawTouchingCircle(tl_rr, tl_r, tlm);
       trls = outline.drawTouchingCircle(tlm, tr_l, tr_ll);
-      trrs = outline.drawTouchingCircle(b, tr_r, ll_tr);
+      trrs = outline.drawTouchingCircle(this.labels.b, tr_r, ll_tr);
       render = new FillShape(sys.ctx);
-      render.moveTo(midPoint(c, d));
+      render.moveTo(midPoint(this.labels.c, this.labels.d));
       render.addArc(bls, true);
       render.lineTo(ll_tl);
       render.addArc(tlls, true);
@@ -2026,96 +1845,123 @@
       render.lineTo(ll_tr);
       render.addArc(brs, true);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
     drawZ: function(id, variant, proportions) {
-      var a, b, bl_l, bl_r, brs, c, d, e, f, g, h, ml_br, ml_tl, named_points, narrow, outline, prop, render, serif, tl_l, tl_r, tls, wide;
-      Util.initializeCanvas(id);
-      named_points = {};
-      prop = Util.initializeSquare(named_points, proportions.aspect);
-      wide = proportions.broad_stem * prop;
-      serif = proportions.serif * prop;
-      narrow = proportions.narrow_stem * wide;
-      a = named_points.a;
-      b = named_points.b;
-      c = named_points.c;
-      d = named_points.d;
+      var bl_l, bl_r, brs, ml_br, ml_tl, outline, render, tl_l, tl_r, tls;
       outline = new OutlineDrawer(sys.ctx);
-      outline.drawLine(a, b);
-      outline.drawLine(c, d);
-      outline.drawLine(a, c);
-      outline.drawLine(b, d);
-      e = named_points.e = a.towards(c, serif);
-      f = named_points.f = a.towards(b, serif);
-      outline.drawLine(e, f);
-      g = named_points.g = d.towards(c, serif);
-      h = named_points.h = d.towards(b, serif);
-      outline.drawLine(g, h);
-      tl_l = a.towards(c, narrow);
-      tl_r = b.towards(d, narrow);
+      outline.drawLine(this.labels.a, this.labels.b);
+      outline.drawLine(this.labels.c, this.labels.d);
+      outline.drawLine(this.labels.a, this.labels.c);
+      outline.drawLine(this.labels.b, this.labels.d);
+      this.labels.e = this.labels.a.towards(this.labels.c, this.serif);
+      this.labels.f = this.labels.a.towards(this.labels.b, this.serif);
+      outline.drawLine(this.labels.e, this.labels.f);
+      this.labels.g = this.labels.d.towards(this.labels.c, this.serif);
+      this.labels.h = this.labels.d.towards(this.labels.b, this.serif);
+      outline.drawLine(this.labels.g, this.labels.h);
+      tl_l = this.labels.a.towards(this.labels.c, this.narrow);
+      tl_r = this.labels.b.towards(this.labels.d, this.narrow);
       outline.drawLine(tl_l, tl_r);
-      tls = outline.drawTouchingCircle(tl_r, intersect(tl_l, tl_r, e, f), e);
-      bl_l = c.towards(a, narrow);
-      bl_r = d.towards(b, narrow);
+      tls = outline.drawTouchingCircle(tl_r, intersect(tl_l, tl_r, this.labels.e, this.labels.f), this.labels.e);
+      bl_l = this.labels.c.towards(this.labels.a, this.narrow);
+      bl_r = this.labels.d.towards(this.labels.b, this.narrow);
       outline.drawLine(bl_l, bl_r);
-      brs = outline.drawTouchingCircle(bl_l, intersect(bl_l, bl_r, g, h), h);
-      ml_br = c.towards(d, wide * 1.25);
-      ml_tl = b.towards(a, wide * 1.25);
-      outline.drawLine(ml_tl, c);
-      outline.drawLine(b, ml_br);
+      brs = outline.drawTouchingCircle(bl_l, intersect(bl_l, bl_r, this.labels.g, this.labels.h), this.labels.h);
+      ml_br = this.labels.c.towards(this.labels.d, this.wide * 1.25);
+      ml_tl = this.labels.b.towards(this.labels.a, this.wide * 1.25);
+      outline.drawLine(ml_tl, this.labels.c);
+      outline.drawLine(this.labels.b, ml_br);
       render = new FillShape(sys.ctx);
-      render.moveTo(c);
-      render.lineTo(intersect(c, ml_tl, tl_l, tl_r));
+      render.moveTo(this.labels.c);
+      render.lineTo(intersect(this.labels.c, ml_tl, tl_l, tl_r));
       render.addArc(tls, true);
-      render.lineTo(f);
-      render.lineTo(b);
-      render.lineTo(intersect(b, ml_br, bl_l, bl_r));
+      render.lineTo(this.labels.f);
+      render.lineTo(this.labels.b);
+      render.lineTo(intersect(this.labels.b, ml_br, bl_l, bl_r));
       render.addArc(brs, true);
-      render.lineTo(g);
+      render.lineTo(this.labels.g);
       render.closeAndFill();
-      outline.labelPoints(named_points);
+      outline.labelPoints(this.labels);
     },
-    makeFuncs: function() {
-      return this.funcs = {
-        a: this.drawA,
-        b: this.drawB,
-        c: this.drawC,
-        d: this.drawD,
-        e: this.drawE,
-        f: this.drawE,
-        g: this.drawG,
-        h: this.drawH,
-        i: this.drawI,
-        j: this.drawT,
-        k: this.drawK,
-        l: this.drawE,
-        m: this.drawM,
-        n: this.drawN,
-        o: this.drawO,
-        p: this.drawB,
-        q: this.drawO,
-        r: this.drawB,
-        s: this.drawS,
-        t: this.drawT,
-        u: this.drawU,
-        v: this.drawV,
-        w: this.drawW,
-        x: this.drawX,
-        y: this.drawY,
-        z: this.drawZ
-      };
+    lookupGlyphFunction: function(letter) {
+      switch (letter) {
+        case 'a':
+          return 'drawA';
+        case 'b':
+          return 'drawB';
+        case 'c':
+          return 'drawC';
+        case 'd':
+          return 'drawD';
+        case 'e':
+          return 'drawE';
+        case 'f':
+          return 'drawE';
+        case 'g':
+          return 'drawG';
+        case 'h':
+          return 'drawH';
+        case 'i':
+          return 'drawI';
+        case 'j':
+          return 'drawT';
+        case 'k':
+          return 'drawK';
+        case 'l':
+          return 'drawE';
+        case 'm':
+          return 'drawM';
+        case 'n':
+          return 'drawN';
+        case 'o':
+          return 'drawO';
+        case 'p':
+          return 'drawB';
+        case 'q':
+          return 'drawO';
+        case 'r':
+          return 'drawB';
+        case 's':
+          return 'drawS';
+        case 't':
+          return 'drawT';
+        case 'u':
+          return 'drawU';
+        case 'v':
+          return 'drawV';
+        case 'w':
+          return 'drawW';
+        case 'x':
+          return 'drawX';
+        case 'y':
+          return 'drawY';
+        case 'z':
+          return 'drawZ';
+        default:
+          return void 0;
+      }
+    },
+    getGlyphFunction: function(letter) {
+      var fname, t,
+        _this = this;
+      t = this;
+      fname = this.lookupGlyphFunction(letter);
+      if (fname !== void 0) {
+        return function(id, variant, prop) {
+          _this.initializeGlyph(id, prop);
+          return _this[fname](id, variant, prop);
+        };
+      } else {
+        return fname;
+      }
     },
     drawLetter: function(id, letter, proportions) {
-      var e, f;
+      var f;
       letter = letter.toLowerCase();
-      f = this.funcs[letter];
+      f = this.getGlyphFunction(letter);
       if (f !== void 0) {
-        try {
-          f(id, letter, proportions);
-        } catch (_error) {
-          e = _error;
-          console.log('Exception', e, 'drawing', letter);
-        }
+        f(id, letter, proportions);
       } else {
         console.log('Cannot find rendering functions for', letter);
       }
@@ -2138,7 +1984,7 @@
   getLetterShape = function(letter, proportions) {
     var f, oldOutline;
     letter = letter.toLowerCase();
-    f = GlyphFunctions.funcs[letter];
+    f = GlyphFunctions.getGlyphFunction(letter);
     if (f !== void 0) {
       oldOutline = sys.showOutlines;
       sys.showOutlines = false;
@@ -2244,7 +2090,6 @@
   };
 
   onload = function() {
-    GlyphFunctions.makeFuncs();
     changeProportions();
     drawProofs();
     drawSampleText();
