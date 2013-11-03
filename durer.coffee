@@ -76,9 +76,6 @@ changeSampleText = () ->
   return
 
 sys = 
-  canvas: null
-  ctx: null
-
   width: 0
   height: 0
   x_margin: 0
@@ -497,10 +494,10 @@ class FillShape
       @context.stroke()
     return
 
-Util =
+GlyphFunctions = 
   initializeCanvas: (id) ->
     if id == undefined
-      sys.ctx = new SvgPathGenerator()
+      @ctx = new SvgPathGenerator()
       sys.width = 1
       sys.height = 1
       sys.x_margin = 0
@@ -509,16 +506,16 @@ Util =
       sys.working_height = 1
       return
 
-    sys.canvas = document.getElementById id
-    sys.ctx = sys.canvas.getContext '2d'
+    canvas = document.getElementById id
+    @ctx = canvas.getContext '2d'
 
-    sys.ctx.lineWidth = 0.25
-    sys.ctx.strokeStyle = 'black'
-    sys.ctx.fillStyle = 'black'
+    @ctx.lineWidth = 0.25
+    @ctx.strokeStyle = 'black'
+    @ctx.fillStyle = 'black'
 
-    sys.width = sys.canvas.width
-    sys.height = sys.canvas.height
-    sys.ctx.clearRect 0, 0, sys.width, sys.height
+    sys.width = canvas.width
+    sys.height = canvas.height
+    @ctx.clearRect 0, 0, sys.width, sys.height
     if sys.width > sys.height
       sys.width = sys.height
     else
@@ -550,12 +547,11 @@ Util =
 
     right - left
 
-GlyphFunctions = 
   initializeGlyph: (id, proportions) ->
-    Util.initializeCanvas id
+    @initializeCanvas id
 
     @labels = {}
-    prop = Util.initializeSquare @labels, proportions.aspect
+    prop = @initializeSquare @labels, proportions.aspect
     @wide = proportions.broad_stem * prop
     @serif = proportions.serif * prop
     @narrow = proportions.narrow_stem * @wide
@@ -565,7 +561,7 @@ GlyphFunctions =
     if variant != 'b' and variant != 'c'
         variant = 'a'
 
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -638,7 +634,7 @@ GlyphFunctions =
     else if variant == 'c'
         esl = outline.drawTouchingCircle @labels.i, eleft, (eleft.towards @labels.a, @serif)
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.c
     render.addArc isl, true
@@ -681,7 +677,7 @@ GlyphFunctions =
     return
 
   drawB: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -778,7 +774,7 @@ GlyphFunctions =
       icc_l = bl_l.towards bl_r, @serif + @wide + icr
       icc = outline.drawTouchingCircle ll_tr, intersect(bl_l, bl_r, ll_tr, ll_br), icc_l
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.c
     render.addArc bls, true
@@ -826,7 +822,7 @@ GlyphFunctions =
     return
 
   drawC: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -859,7 +855,7 @@ GlyphFunctions =
     inner_radius = radius - @narrow
     outline.drawCircle ik, (ik.towards @labels.e, inner_radius)
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     ubr = (vertCircle @labels.i, radius, tr.x).lower
     lbr = (vertCircle @labels.k, radius, tr.x).lower
@@ -889,7 +885,7 @@ GlyphFunctions =
     return
 
   drawD: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -937,7 +933,7 @@ GlyphFunctions =
     isp = bl_l.towards bl_r, @serif + @wide + @serif
     _is = outline.drawTouchingCircle ll_tr, (intersect ll_tr, ll_br, bl_l, bl_r), isp
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.c
     render.addArc lls, true
@@ -955,7 +951,7 @@ GlyphFunctions =
     return
 
   drawE: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1020,7 +1016,7 @@ GlyphFunctions =
     else
       blls = outline.drawTouchingCircle ll_tr, ll_br, (ll_br.towards @labels.d, @serif)
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.c
     render.addArc bls, true
@@ -1046,7 +1042,7 @@ GlyphFunctions =
     return
 
   drawG: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1083,7 +1079,7 @@ GlyphFunctions =
     icl = icc.towards @labels.e, icr
     outline.drawCircle icc, icl
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     gk_v = vertCircle @labels.k, outerRadius, @labels.g.x
 
@@ -1111,7 +1107,7 @@ GlyphFunctions =
     return
 
   drawH: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1157,7 +1153,7 @@ GlyphFunctions =
     ml_r = @labels.f.towards @labels.b, @narrow
     outline.drawLine ml_l, ml_r
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.c
     render.addArc lbls, true
@@ -1178,7 +1174,7 @@ GlyphFunctions =
     return
 
   drawI: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1208,7 +1204,7 @@ GlyphFunctions =
     trs = outline.drawTouchingCircle trr, tr, br
     brs = outline.drawTouchingCircle tr, br, brr
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo bll
     render.addArc bls, true
@@ -1221,7 +1217,7 @@ GlyphFunctions =
     return
 
   drawK: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1275,7 +1271,7 @@ GlyphFunctions =
     rll_ut = outline.drawTouchingCircle rll_ul, rll_ur, @labels.d
     @labels.h = rll_ut.center
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
     render.moveTo @labels.c
     render.addArc lls, true
     render.addArc uls, true
@@ -1295,7 +1291,7 @@ GlyphFunctions =
     return
 
   drawM: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1339,7 +1335,7 @@ GlyphFunctions =
     mr_rt = @labels.g.towards @labels.b, @narrow
     outline.drawLine mr_rt, @labels.e
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
     render.moveTo @labels.c
     render.addArc ll_ls, true
     render.addArc ll_ts, true
@@ -1359,7 +1355,7 @@ GlyphFunctions =
     return
 
   drawN: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1393,7 +1389,7 @@ GlyphFunctions =
     rl_ls = outline.drawTouchingCircle rl_bl, rl_tl, rl_tll
     rl_rs = outline.drawTouchingCircle @labels.b, rl_tr, @labels.e
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
     render.moveTo @labels.c
     render.addArc ll_ls, true
     render.addArc ll_ts, true
@@ -1410,7 +1406,7 @@ GlyphFunctions =
     return
 
   drawO: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1467,7 +1463,7 @@ GlyphFunctions =
       outline.drawLine @labels.h, ltc
       outline.drawCircle ltc, @labels.h
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo ob
     render.addArc {from: ob, to: ol, center: @labels.f}, false
@@ -1492,7 +1488,7 @@ GlyphFunctions =
     return
 
   drawS: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1546,7 +1542,7 @@ GlyphFunctions =
     lti = new Point bic.x - (Math.cos angle) * bir, bic.y + (Math.sin angle) * bir
     outline.drawLine lti, ltu
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo ltu
     render.addArc {from: lti, to: @labels.l, center: bic}, true
@@ -1559,7 +1555,7 @@ GlyphFunctions =
     return
 
   drawT: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1617,7 +1613,7 @@ GlyphFunctions =
     trus = outline.drawTouchingCircle @labels.a, (intersect @labels.a, @labels.b, tl_rl, tl_ru), tl_ru
     trls = outline.drawTouchingCircle tl_rl, (intersect tl_l, tl_r, tl_rl, tl_ru), tl_l
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     if variant != 'j'
       render.moveTo bls.from
@@ -1642,7 +1638,7 @@ GlyphFunctions =
     return
 
   drawU: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1680,7 +1676,7 @@ GlyphFunctions =
     lic = new Point @labels.e.x, @labels.e.y - lir - @narrow
     outline.drawCircle lic, (new Point @labels.e.x, @labels.e.y - @narrow)
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo tlls.from
     render.addArc tlls, true
@@ -1695,7 +1691,7 @@ GlyphFunctions =
     return
 
   drawV: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1724,7 +1720,7 @@ GlyphFunctions =
     rlls = outline.drawTouchingCircle rl_bl, rl_tl, rl_tll
     rlrs = outline.drawTouchingCircle @labels.b, @labels.g, @labels.e
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.e
     render.addArc llls, true
@@ -1738,7 +1734,7 @@ GlyphFunctions =
     return
 
   drawW: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1783,7 +1779,7 @@ GlyphFunctions =
     bls = outline.drawTouchingCircle g_l, b_l, b_ll
     brs = outline.drawTouchingCircle b_r, @labels.b, @labels.g
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.f
     render.addArc als, true
@@ -1801,7 +1797,7 @@ GlyphFunctions =
     return
 
   drawX: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1846,7 +1842,7 @@ GlyphFunctions =
     brrs = outline.drawTouchingCircle tl_r, @labels.i, @labels.d
     brls = outline.drawTouchingCircle br_ll, br_l, @labels.f
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.g
     render.addArc blls, true
@@ -1867,7 +1863,7 @@ GlyphFunctions =
     return
 
   drawY: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1914,7 +1910,7 @@ GlyphFunctions =
     trls = outline.drawTouchingCircle tlm, tr_l, tr_ll
     trrs = outline.drawTouchingCircle @labels.b, tr_r, ll_tr
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo (midPoint @labels.c, @labels.d)
     render.addArc bls, true
@@ -1932,7 +1928,7 @@ GlyphFunctions =
     return
 
   drawZ: (id, variant, proportions) ->
-    outline = new OutlineDrawer sys.ctx
+    outline = new OutlineDrawer @ctx
 
     outline.drawLine @labels.a, @labels.b
     outline.drawLine @labels.c, @labels.d
@@ -1963,7 +1959,7 @@ GlyphFunctions =
     outline.drawLine ml_tl, @labels.c
     outline.drawLine @labels.b, ml_br
 
-    render = new FillShape sys.ctx
+    render = new FillShape @ctx
 
     render.moveTo @labels.c
     render.lineTo (intersect @labels.c, ml_tl, tl_l, tl_r)
@@ -2023,8 +2019,8 @@ GlyphFunctions =
 
     f = @getGlyphFunction letter
     if f != undefined
-      f id, letter, proportions
-      # catch e then console.log 'Exception', e, 'drawing', letter
+      try f id, letter, proportions
+      catch e then console.log 'Exception', e, 'drawing', letter
     else
       console.log 'Cannot find rendering functions for', letter
     return
@@ -2052,7 +2048,8 @@ getLetterShape = (letter, proportions) ->
       sys.showOutlines = false
       f undefined, letter, proportions
       sys.showOutlines = oldOutline
-      [sys.ctx.path, sys.ctx.lx, sys.ctx.rx, sys.ctx.leftLimits, sys.ctx.rightLimits]
+      ctx = GlyphFunctions.ctx
+      [ctx.path, ctx.lx, ctx.rx, ctx.leftLimits, ctx.rightLimits]
     else
       ''
 
